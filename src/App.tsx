@@ -165,6 +165,12 @@ export default function App() {
   };
   const [selectedEditingProduct, setSelectedEditingProduct] = useState<Product | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  // Acesso direto ao painel admin via link secreto (#admin)
+  useEffect(() => {
+    if (window.location.hash === '#admin') {
+      setCurrentView('dashboard');
+    }
+  }, []);
 
   // 3. Sync to localStorage when states update
   useEffect(() => {
