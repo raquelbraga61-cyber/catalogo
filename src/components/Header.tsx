@@ -243,21 +243,6 @@ export default function Header({
                   )}
                 </button>
 
-                <button
-                  onClick={() => handleSidebarNav('dashboard')}
-                  className={`w-full flex items-center justify-between px-4 py-3 rounded-full text-left font-semibold text-sm transition-all ${
-                    currentView === 'dashboard' || currentView === 'form'
-                      ? 'bg-[#176c33] text-white shadow-md' 
-                      : 'hover:bg-[#ebefe7] text-[#40493f]'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <LayoutDashboard className="w-5 h-5" />
-                    <span>Painel de Gestão (Admin)</span>
-                  </div>
-                  {!isAdmin && <Lock className="w-3.5 h-3.5 text-[#707a6e]/80" />}
-                </button>
-
                 {isAdmin && onLogoutAdmin && (
                   <button
                     onClick={() => {
