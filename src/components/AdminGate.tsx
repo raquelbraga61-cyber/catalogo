@@ -13,7 +13,7 @@ export default function AdminGate({ onSuccess, onCancel }: AdminGateProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (username.trim() === 'raquel' && password === 'linda') {
+    if (username.trim() === 'sacolao online' && password === '2026sacolao.R.B') {
       setError(false);
       onSuccess();
     } else {
