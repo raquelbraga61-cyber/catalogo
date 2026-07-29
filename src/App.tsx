@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { DEFAULT_PRODUCTS, DEFAULT_DAILY_OFFER } from './data';
 import { Product, CartItem, CustomerInfo, ViewType, FormMode, DailyOffer } from './types';
+import { db } from './firebase';
+import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import Header from './components/Header';
 import Catalog from './components/Catalog';
 import Cart from './components/Cart';
