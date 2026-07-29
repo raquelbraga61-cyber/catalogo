@@ -172,10 +172,74 @@ export default function App() {
     }
   }, []);
 
-  // 3. Sync to localStorage when states update
+// 3. Sync produtos, categorias e ofertas com o Firebase (visível para todo mundo)
   useEffect(() => {
-    localStorage.setItem('sacolao_products', JSON.stringify(products));
+    const unsub = onSnapshot(doc(db, 'sacolao', 'products'), (snap) => {
+      if (snap.exists()) {
+        skipNextProductsWrite.current = true;
+        setProducts(snap.data().list);
+      } else {
+        setDoc(doc(db, 'sacolao', 'products'), { list: DEFAULT_PRODUCTS });
+      }
+      productsLoaded.current = true;
+    });
+    return () => unsub();
+  }, []);
+
+  useEffect(() => {
+    if (!productsLoaded.current) return;
+    if (skipNextProductsWrite.current) {
+      skipNextProductsWrite.current = false;
+      return;
+    }
+    setDoc(doc(db, 'sacolao', 'products'), { list: products });
   }, [products]);
+
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'sacolao', 'categories'), (snap) => {
+      if (snap.exists()) {
+        skipNextCategoriesWrite.current = true;
+        setCategories(snap.data().list);
+      } else {
+        setDoc(doc(db, 'sacolao', 'categories'), { list: categories });
+      }
+      categoriesLoaded.current = true;
+    });
+    return () => unsub();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!categoriesLoaded.current) return;
+    if (skipNextCategoriesWrite.current) {
+      skipNextCategoriesWrite.current = false;
+      return;
+    }
+    setDoc(doc(db, 'sacolao', 'categories'), { list: categories });
+  }, [categories]);
+
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'sacolao', 'dailyOffers'), (snap) => {
+      if (snap.exists()) {
+        skipNextDailyOffersWrite.current = true;
+        setDailyOffers(snap.data().list);
+      } else {
+        setDoc(doc(db, 'sacolao', 'dailyOffers'), { list: dailyOffers });
+      }
+      dailyOffersLoaded.current = true;
+    });
+    return () => unsub();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!dailyOffersLoaded.current) return;
+    if (skipNextDailyOffersWrite.current) {
+      skipNextDailyOffersWrite.current = false;
+      return;
+    }
+    setDoc(doc(db, 'sacolao', 'dailyOffers'), { list: dailyOffers });
+  }, [dailyOffers]);
 
   useEffect(() => {
     localStorage.setItem('sacolao_cart', JSON.stringify(cart));
@@ -184,14 +248,6 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('sacolao_customer_info', JSON.stringify(customerInfo));
   }, [customerInfo]);
-
-  useEffect(() => {
-    localStorage.setItem('sacolao_daily_offers', JSON.stringify(dailyOffers));
-  }, [dailyOffers]);
-
-  useEffect(() => {
-    localStorage.setItem('sacolao_categories', JSON.stringify(categories));
-  }, [categories]);
 
   // 4. Cart Logic Handlers
   const handleAddToCart = (product: Product, quantity = 1) => {
