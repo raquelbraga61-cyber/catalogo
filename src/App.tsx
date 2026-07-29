@@ -12,17 +12,9 @@ import Favorites from './components/Favorites';
 
 export default function App() {
   // 1. Core State with LocalStorage Persistence
-  const [products, setProducts] = useState<Product[]>(() => {
-    const savedProducts = localStorage.getItem('sacolao_products');
-    if (savedProducts) {
-      try {
-        return JSON.parse(savedProducts);
-      } catch (e) {
-        console.error('Erro ao restaurar catálogo de produtos:', e);
-      }
-    }
-    return DEFAULT_PRODUCTS;
-  });
+const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
+  const productsLoaded = useRef(false);
+  const skipNextProductsWrite = useRef(false);
 
   const [cart, setCart] = useState<CartItem[]>(() => {
     const savedCart = localStorage.getItem('sacolao_cart');
@@ -54,77 +46,40 @@ export default function App() {
     return { name: '', address: '', neighborhood: '', paymentMethod: 'PIX', cashChange: '' };
   });
 
-  const [dailyOffers, setDailyOffers] = useState<DailyOffer[]>(() => {
-    const savedOffers = localStorage.getItem('sacolao_daily_offers');
-    if (savedOffers) {
-      try {
-        const parsed = JSON.parse(savedOffers);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
-        }
-      } catch (e) {
-        console.error('Erro ao restaurar ofertas:', e);
-      }
+  const [dailyOffers, setDailyOffers] = useState<DailyOffer[]>([
+    {
+      id: '1',
+      badge: 'Oferta do Dia',
+      title: 'Frescor Direto da Horta na sua Mesa',
+      description: 'Aproveite até 30% OFF em itens selecionados hoje mesmo.',
+      imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB2TteofSMBjMB6hWFlPuT7ehrMQkljYM65cqPUJIsr91DvVPNDelcJpOpfAtQb58vsAZw2mZAvWKLGTEo_K-jTBXrY-iYJAWK6Bdfy2-V3cK6Tb7GGk66GCkqrbk60_WTM9FOxFLR3mTCYqJuYDC9iJmnBcY9xf1MO7xX9bnKtK05Cm8aevshqp7uf-3rc12cvvoO0zaDxdb0obnSB_RualhWmipmsI1GrV8JyvubQf4opYom5lsLYrjdWFs2RFWUZPV1a3gVPZko'
+    },
+    {
+      id: '2',
+      badge: 'Entrega Rápida',
+      title: 'Frutas e Verduras Selecionadas',
+      description: 'Qualidade garantida e entrega rápida no mesmo dia na sua casa.',
+      imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBR6jyxE_2OIOtdbUiqVpPX4Q2GE_gVoipZdJsoP1AOqUqHWgwTVudtbvfSvfCvF3Y4D1Thx6k7EVoM1rpTin8M3XL6dRcMdv1XuS-j0-1kVrX6yHp4etW_XgqH8ZTePRFiNh7IZSH-FyulUbpU3x7G-n9bGMXTKl9E8Z3aXqKX0OeZT226Hx1N5I3yeFS4aqdMKKFPdHPpf2FGvxtvJ-yA95cz_XLcINC3GZcibFpHcpgBf_RWzhhWbVC70yO8711XBSE-qqOw-uA'
+    },
+    {
+      id: '3',
+      badge: 'Orgânicos',
+      title: 'Estilo de Vida Mais Saudável',
+      description: 'Conheça nossa linha completa de produtos 100% orgânicos e certificados.',
+      imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDYyUpXxFCoTM1Vhoy3eDJnC9upba3Jfo0bB0E0b1YRVyVV1Vbcu2k2Nwi6W_vfAUZ3BuvZ-pmDL23jOOpcSlctIvcuRod3a7TvANYoZcjGX4Negv6T92HDtaaglzZk_uexHJEYmkY-rrUIllzHa-aTmwfLB-rW0ZXtrUoU64LUHoQWZYi24hWm443oqBDPyQEMojbEGHplKAr5pvbnY7p2gGT028_Pw1va3wDYNPacWGsYxoZZRJWNRjgcGLAY5uFrseJQuwPeXlA'
     }
+  ]);
+  const dailyOffersLoaded = useRef(false);
+  const skipNextDailyOffersWrite = useRef(false);
 
-    // Migração de oferta única se houver
-    const savedSingleOffer = localStorage.getItem('sacolao_daily_offer');
-    if (savedSingleOffer) {
-      try {
-        const parsed = JSON.parse(savedSingleOffer);
-        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-          return [{ id: '1', ...parsed }];
-        }
-      } catch (e) {}
-    }
-
-    return [
-      {
-        id: '1',
-        badge: 'Oferta do Dia',
-        title: 'Frescor Direto da Horta na sua Mesa',
-        description: 'Aproveite até 30% OFF em itens selecionados hoje mesmo.',
-        imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB2TteofSMBjMB6hWFlPuT7ehrMQkljYM65cqPUJIsr91DvVPNDelcJpOpfAtQb58vsAZw2mZAvWKLGTEo_K-jTBXrY-iYJAWK6Bdfy2-V3cK6Tb7GGk66GCkqrbk60_WTM9FOxFLR3mTCYqJuYDC9iJmnBcY9xf1MO7xX9bnKtK05Cm8aevshqp7uf-3rc12cvvoO0zaDxdb0obnSB_RualhWmipmsI1GrV8JyvubQf4opYom5lsLYrjdWFs2RFWUZPV1a3gVPZko'
-      },
-      {
-        id: '2',
-        badge: 'Entrega Rápida',
-        title: 'Frutas e Verduras Selecionadas',
-        description: 'Qualidade garantida e entrega rápida no mesmo dia na sua casa.',
-        imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBR6jyxE_2OIOtdbUiqVpPX4Q2GE_gVoipZdJsoP1AOqUqHWgwTVudtbvfSvfCvF3Y4D1Thx6k7EVoM1rpTin8M3XL6dRcMdv1XuS-j0-1kVrX6yHp4etW_XgqH8ZTePRFiNh7IZSH-FyulUbpU3x7G-n9bGMXTKl9E8Z3aXqKX0OeZT226Hx1N5I3yeFS4aqdMKKFPdHPpf2FGvxtvJ-yA95cz_XLcINC3GZcibFpHcpgBf_RWzhhWbVC70yO8711XBSE-qqOw-uA'
-      },
-      {
-        id: '3',
-        badge: 'Orgânicos',
-        title: 'Estilo de Vida Mais Saudável',
-        description: 'Conheça nossa linha completa de produtos 100% orgânicos e certificados.',
-        imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDYyUpXxFCoTM1Vhoy3eDJnC9upba3Jfo0bB0E0b1YRVyVV1Vbcu2k2Nwi6W_vfAUZ3BuvZ-pmDL23jOOpcSlctIvcuRod3a7TvANYoZcjGX4Negv6T92HDtaaglzZk_uexHJEYmkY-rrUIllzHa-aTmwfLB-rW0ZXtrUoU64LUHoQWZYi24hWm443oqBDPyQEMojbEGHplKAr5pvbnY7p2gGT028_Pw1va3wDYNPacWGsYxoZZRJWNRjgcGLAY5uFrseJQuwPeXlA'
-      }
-    ];
-  });
-
-  const [categories, setCategories] = useState<{ name: string; icon: string }[]>(() => {
-    const savedCategories = localStorage.getItem('sacolao_categories');
-    if (savedCategories) {
-      try {
-        const parsed = JSON.parse(savedCategories);
-        if (Array.isArray(parsed)) {
-          return parsed.map((cat: any) => ({
-            name: cat.name,
-            icon: ''
-          }));
-        }
-      } catch (e) {
-        console.error('Erro ao restaurar categorias:', e);
-      }
-    }
-    return [
-      { name: 'Frutas', icon: '' },
-      { name: 'Verduras', icon: '' },
-      { name: 'Legumes', icon: '' },
-      { name: 'Grãos', icon: '' }
-    ];
-  });
+  const [categories, setCategories] = useState<{ name: string; icon: string }[]>([
+    { name: 'Frutas', icon: '' },
+    { name: 'Verduras', icon: '' },
+    { name: 'Legumes', icon: '' },
+    { name: 'Grãos', icon: '' }
+  ]);
+  const categoriesLoaded = useRef(false);
+  const skipNextCategoriesWrite = useRef(false);
 
   const handleAddCategory = (name: string, icon: string) => {
     if (!name.trim()) return;
