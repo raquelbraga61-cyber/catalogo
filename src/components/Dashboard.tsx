@@ -345,33 +345,11 @@ export default function Dashboard({
         </button>
       </section>
 
-      {/* Stats row widgets */}
-      <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        
-        {/* Metric block 1 */}
-        <div className="bg-white p-6 rounded-2xl border border-[#bfc9bc]/30 shadow-sm flex flex-col justify-between">
-          <div className="w-12 h-12 bg-[#176c33]/15 rounded-full flex items-center justify-center text-[#176c33] mb-4 font-bold text-sm">
-            ESTOQUE
-          </div>
-          <div>
-            <p className="text-xs font-bold text-[#40493f] uppercase tracking-wider">Estoque Total</p>
-            <h3 className="text-3xl font-extrabold text-[#176c33] tracking-tight">{totalStock} un/kg</h3>
-          </div>
-        </div>
-
-        {/* Metric block 2 */}
-        <div className="bg-white p-6 rounded-2xl border border-[#bfc9bc]/30 shadow-sm flex flex-col justify-between">
-          <div className="w-12 h-12 bg-[#47664a]/20 rounded-full flex items-center justify-center text-[#47664a] mb-4 font-bold text-sm">
-            GRUPOS
-          </div>
-          <div>
-            <p className="text-xs font-bold text-[#40493f] uppercase tracking-wider">Categorias Ativas</p>
-            <h3 className="text-3xl font-extrabold text-[#176c33] tracking-tight">{categoriesCount}</h3>
-          </div>
-        </div>
+{/* Stats row widgets */}
+      <section className="grid grid-cols-1 gap-6">
 
          {/* Promotional details box */}
-        <div className="md:col-span-2 bg-[#176c33] text-white p-6 rounded-2xl border border-white/10 shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[220px]">
+        <div className="bg-[#176c33] text-white p-6 rounded-2xl border border-white/10 shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[220px]">
           <div className="relative z-10 space-y-4 w-full">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/10 pb-2 gap-2">
               <h3 className="font-bold text-lg" style={{ fontFamily: 'Plus Jakarta Sans' }}>Resumo de Crescimento</h3>
