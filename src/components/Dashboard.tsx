@@ -765,26 +765,7 @@ export default function Dashboard({
                   </button>
                 </div>
               </div>
-            ) : (
-              <div className="bg-[#f7fbf2] rounded-xl p-5 border border-[#bfc9bc]/20 flex flex-col justify-between min-h-[176px] space-y-4">
-                <div className="space-y-2">
-                  <p className="text-xs font-bold text-[#176c33] uppercase tracking-wider flex items-center gap-1">
-                    <Sparkles className="w-3.5 h-3.5" />
-                    <span>Dica de Uso:</span>
-                  </p>
-                  <p className="text-xs text-[#181d18] leading-relaxed">
-                    Você pode criar quantos banners quiser! Eles serão exibidos em um <strong>carrossel animado</strong> na tela inicial dos clientes, passando automaticamente a cada <strong>5 segundos</strong>.
-                  </p>
-                  <p className="text-xs text-[#707a6e]">
-                    Passe o mouse por cima dos banners na listagem para editá-los ou excluí-los rapidamente.
-                  </p>
-                </div>
-                <div className="text-[10px] text-[#707a6e] flex items-center gap-1.5 pt-4 border-t border-[#bfc9bc]/10">
-                  <span className="inline-block w-2.5 h-2.5 bg-[#6dbe7b] rounded-full animate-bounce"></span>
-                  Sincronizado e rotacionado ao vivo no catálogo de compras.
-                </div>
-              </div>
-            )}
+            ) : null}
 
             {saveSuccess && (
               <div className="bg-[#e8f5e9] text-[#1b5e20] px-4 py-2.5 rounded-xl border border-[#c8e6c9] text-xs font-bold flex items-center gap-1.5 animate-in slide-in-from-top-1.5 duration-200">
@@ -816,8 +797,7 @@ export default function Dashboard({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* New Category Form (Left / Col-Span-5) */}
           <div className="lg:col-span-5 space-y-4">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[#40493f]">Nova Categoria</h4>
-            
+          
             <form onSubmit={(e) => {
               e.preventDefault();
               if (!newCatName.trim()) return;
