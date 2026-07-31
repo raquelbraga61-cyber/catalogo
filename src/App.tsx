@@ -3,7 +3,7 @@ import { X } from 'lucide-react';
 import { DEFAULT_PRODUCTS, DEFAULT_DAILY_OFFER } from './data';
 import { Product, CartItem, CustomerInfo, ViewType, FormMode, DailyOffer } from './types';
 import { db } from './firebase';
-import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, deleteDoc, collection, writeBatch } from 'firebase/firestore';
 import Header from './components/Header';
 import Catalog from './components/Catalog';
 import Cart from './components/Cart';
@@ -16,8 +16,7 @@ export default function App() {
   // 1. Core State with LocalStorage Persistence
 const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
   const productsLoaded = useRef(false);
-  const skipNextProductsWrite = useRef(false);
-
+  
   const [cart, setCart] = useState<CartItem[]>(() => {
     const savedCart = localStorage.getItem('sacolao_cart');
     if (savedCart) {
@@ -131,26 +130,20 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
 
 // 3. Sync produtos, categorias e ofertas com o Firebase (visível para todo mundo)
   useEffect(() => {
-    const unsub = onSnapshot(doc(db, 'sacolao', 'products'), (snap) => {
-      if (snap.exists()) {
-        skipNextProductsWrite.current = true;
-        setProducts(snap.data().list);
+    const unsub = onSnapshot(collection(db, 'products'), (snap) => {
+      if (snap.empty) {
+        const batch = writeBatch(db);
+        DEFAULT_PRODUCTS.forEach((p) => {
+          batch.set(doc(db, 'products', p.id), p);
+        });
+        batch.commit();
       } else {
-        setDoc(doc(db, 'sacolao', 'products'), { list: DEFAULT_PRODUCTS });
+        setProducts(snap.docs.map((d) => d.data() as Product));
       }
       productsLoaded.current = true;
     });
     return () => unsub();
   }, []);
-
-  useEffect(() => {
-    if (!productsLoaded.current) return;
-    if (skipNextProductsWrite.current) {
-      skipNextProductsWrite.current = false;
-      return;
-    }
-    setDoc(doc(db, 'sacolao', 'products'), { list: products });
-  }, [products]);
 
   useEffect(() => {
     const unsub = onSnapshot(doc(db, 'sacolao', 'categories'), (snap) => {
@@ -298,29 +291,26 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
   };
 
   const handleSaveProduct = (productData: Omit<Product, 'id'> & { id?: string }) => {
-    setProducts((prevProducts) => {
-      if (productData.id) {
-        // Edit flow
-        return prevProducts.map((p) =>
-          p.id === productData.id ? (productData as Product) : p
-        );
-      } else {
-        // Create flow - Determine next incremental ID
-        const lastIdNumber = prevProducts
-          .map((p) => {
-            const num = parseInt(p.id.replace('HT-', ''), 10);
-            return isNaN(num) ? 0 : num;
-          })
-          .reduce((max, num) => Math.max(max, num), 0);
+    if (productData.id) {
+      // Edit flow
+      const updatedProduct = productData as Product;
+      setDoc(doc(db, 'products', updatedProduct.id), updatedProduct);
+    } else {
+      // Create flow - Determine next incremental ID
+      const lastIdNumber = products
+        .map((p) => {
+          const num = parseInt(p.id.replace('HT-', ''), 10);
+          return isNaN(num) ? 0 : num;
+        })
+        .reduce((max, num) => Math.max(max, num), 0);
 
-        const nextId = `HT-${String(lastIdNumber + 1).padStart(3, '0')}`;
-        const newProduct: Product = {
-          ...(productData as Product),
-          id: nextId
-        };
-        return [newProduct, ...prevProducts];
-      }
-    });
+      const nextId = `HT-${String(lastIdNumber + 1).padStart(3, '0')}`;
+      const newProduct: Product = {
+        ...(productData as Product),
+        id: nextId
+      };
+      setDoc(doc(db, 'products', newProduct.id), newProduct);
+    }
 
     // Reset Form contexts
     setSelectedEditingProduct(null);
@@ -328,7 +318,7 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
 
   const handleDeleteProduct = (id: string) => {
     // Delete product from inventory list
-    setProducts((prevProducts) => prevProducts.filter((p) => p.id !== id));
+    deleteDoc(doc(db, 'products', id));
     // Also clear deleted item from current shopping bag if matches
     setCart((prevCart) => prevCart.filter((item) => item.product.id !== id));
   };
