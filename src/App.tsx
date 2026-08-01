@@ -3,7 +3,7 @@ import { X } from 'lucide-react';
 import { DEFAULT_PRODUCTS, DEFAULT_DAILY_OFFER } from './data';
 import { Product, CartItem, CustomerInfo, ViewType, FormMode, DailyOffer } from './types';
 import { db } from './firebase';
-import { doc, onSnapshot, setDoc, deleteDoc, collection, writeBatch } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, deleteDoc, collection, writeBatch, getDoc } from 'firebase/firestore';
 import Header from './components/Header';
 import Catalog from './components/Catalog';
 import Cart from './components/Cart';
@@ -130,13 +130,19 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
 
 // 3. Sync produtos, categorias e ofertas com o Firebase (visível para todo mundo)
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, 'products'), (snap) => {
+const unsub = onSnapshot(collection(db, 'products'), async (snap) => {
       if (snap.empty) {
+        // Recupera os dados reais já salvos antes de recorrer aos produtos padrão
+        const oldDoc = await getDoc(doc(db, 'sacolao', 'products'));
+        const sourceList: Product[] =
+          oldDoc.exists() && Array.isArray(oldDoc.data().list)
+            ? oldDoc.data().list
+            : DEFAULT_PRODUCTS;
         const batch = writeBatch(db);
-        DEFAULT_PRODUCTS.forEach((p) => {
+        sourceList.forEach((p) => {
           batch.set(doc(db, 'products', p.id), p);
         });
-        batch.commit();
+        await batch.commit();
       } else {
         setProducts(snap.docs.map((d) => d.data() as Product));
       }
