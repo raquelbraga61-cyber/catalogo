@@ -129,24 +129,26 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
   }, []);
 
 // 3. Sync produtos, categorias e ofertas com o Firebase (visível para todo mundo)
-  useEffect(() => {
-const unsub = onSnapshot(collection(db, 'products'), async (snap) => {
-      if (snap.empty) {
-        // Recupera os dados reais já salvos antes de recorrer aos produtos padrão
-        const oldDoc = await getDoc(doc(db, 'sacolao', 'products'));
-        const sourceList: Product[] =
-          oldDoc.exists() && Array.isArray(oldDoc.data().list)
-            ? oldDoc.data().list
-            : DEFAULT_PRODUCTS;
-        const batch = writeBatch(db);
-        sourceList.forEach((p) => {
-          batch.set(doc(db, 'products', p.id), p);
-        });
-        await batch.commit();
-      } else {
-        setProducts(snap.docs.map((d) => d.data() as Product));
-      }
+  const unsub = onSnapshot(collection(db, 'products'), async (snap) => {
+      setProducts(snap.docs.map((d) => d.data() as Product));
       productsLoaded.current = true;
+
+      if (snap.empty) {
+        const migrationFlag = await getDoc(doc(db, 'sacolao', 'migrated'));
+        if (!migrationFlag.exists()) {
+          const oldDoc = await getDoc(doc(db, 'sacolao', 'products'));
+          const sourceList: Product[] =
+            oldDoc.exists() && Array.isArray(oldDoc.data().list)
+              ? oldDoc.data().list
+              : DEFAULT_PRODUCTS;
+          const batch = writeBatch(db);
+          sourceList.forEach((p) => {
+            batch.set(doc(db, 'products', p.id), p);
+          });
+          batch.set(doc(db, 'sacolao', 'migrated'), { done: true });
+          await batch.commit();
+        }
+      }
     });
     return () => unsub();
   }, []);
