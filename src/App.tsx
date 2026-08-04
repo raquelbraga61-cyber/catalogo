@@ -15,6 +15,7 @@ import Favorites from './components/Favorites';
 export default function App() {
   // 1. Core State with LocalStorage Persistence
 const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
+  const [isProductsReady, setIsProductsReady] = useState(false);
   const productsLoaded = useRef(false);
   
   const [cart, setCart] = useState<CartItem[]>(() => {
@@ -133,6 +134,7 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
   const unsub = onSnapshot(collection(db, 'products'), async (snap) => {
       setProducts(snap.docs.map((d) => d.data() as Product));
       productsLoaded.current = true;
+      setIsProductsReady(true);
 
       if (snap.empty) {
         const migrationFlag = await getDoc(doc(db, 'sacolao', 'migrated'));
