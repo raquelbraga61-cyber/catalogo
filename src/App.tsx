@@ -129,6 +129,7 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
   }, []);
 
 // 3. Sync produtos, categorias e ofertas com o Firebase (visível para todo mundo)
+  useEffect(() => {
   const unsub = onSnapshot(collection(db, 'products'), async (snap) => {
       setProducts(snap.docs.map((d) => d.data() as Product));
       productsLoaded.current = true;
