@@ -125,40 +125,44 @@ export default function Header({
               </div>
             )}
 
-            {/* Favorites (Lista de Compras) Quick Access */}
-            <button
-              onClick={() => onNavigate('favorites')}
-              className={`relative p-2 rounded-full transition-colors flex items-center justify-center ${
-                currentView === 'favorites'
-                  ? 'bg-red-50 text-[#99405c]'
-                  : 'hover:bg-red-50 text-[#99405c]/80 hover:text-[#99405c]'
-              }`}
-              aria-label="Lista de Compras"
-              title="Lista de Compras"
-            >
-              <Heart className={`w-6 h-6 ${currentView === 'favorites' ? 'fill-[#99405c]' : ''}`} />
-              {favoritesCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-5 h-5 bg-[#99405c] rounded-full text-[10px] text-white flex items-center justify-center font-bold px-1 ring-2 ring-[#f7fbf2]">
-                  {favoritesCount}
-                </span>
-              )}
-            </button>
+            {currentView !== 'dashboard' && currentView !== 'form' && (
+              <>
+                {/* Favorites (Lista de Compras) Quick Access */}
+                <button
+                  onClick={() => onNavigate('favorites')}
+                  className={`relative p-2 rounded-full transition-colors flex items-center justify-center ${
+                    currentView === 'favorites'
+                      ? 'bg-red-50 text-[#99405c]'
+                      : 'hover:bg-red-50 text-[#99405c]/80 hover:text-[#99405c]'
+                  }`}
+                  aria-label="Lista de Compras"
+                  title="Lista de Compras"
+                >
+                  <Heart className={`w-6 h-6 ${currentView === 'favorites' ? 'fill-[#99405c]' : ''}`} />
+                  {favoritesCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 min-w-5 h-5 bg-[#99405c] rounded-full text-[10px] text-white flex items-center justify-center font-bold px-1 ring-2 ring-[#f7fbf2]">
+                      {favoritesCount}
+                    </span>
+                  )}
+                </button>
 
-            {/* Cart Quick Access */}
-            {currentView !== 'cart' && (
-              <button
-                onClick={() => onNavigate('cart')}
-                className="relative p-2 rounded-full hover:bg-[#6dbe7b]/10 transition-colors text-[#176c33]"
-                aria-label="Ver Carrinho"
-                title="Meu Carrinho"
-              >
-                <ShoppingCart className="w-6 h-6" />
-                {cartCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-5 h-5 bg-[#99405c] rounded-full text-[10px] text-white flex items-center justify-center font-bold px-1 ring-2 ring-[#f7fbf2]">
-                    {cartCount}
-                  </span>
+                {/* Cart Quick Access */}
+                {currentView !== 'cart' && (
+                  <button
+                    onClick={() => onNavigate('cart')}
+                    className="relative p-2 rounded-full hover:bg-[#6dbe7b]/10 transition-colors text-[#176c33]"
+                    aria-label="Ver Carrinho"
+                    title="Meu Carrinho"
+                  >
+                    <ShoppingCart className="w-6 h-6" />
+                    {cartCount > 0 && (
+                      <span className="absolute -top-0.5 -right-0.5 min-w-5 h-5 bg-[#99405c] rounded-full text-[10px] text-white flex items-center justify-center font-bold px-1 ring-2 ring-[#f7fbf2]">
+                        {cartCount}
+                      </span>
+                    )}
+                  </button>
                 )}
-              </button>
+              </>
             )}
           </div>
         </div>
