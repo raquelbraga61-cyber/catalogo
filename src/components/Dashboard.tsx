@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PlusCircle, Plus, Search, Trash2, Edit, TrendingUp, ChevronLeft, ChevronRight, ShoppingCart, Tag, Image, Sparkles, RefreshCw, Eye, X } from 'lucide-react';
+import { PlusCircle, Plus, Search, Trash2, Edit, TrendingUp, ChevronLeft, ChevronRight, ChevronDown, ShoppingCart, Tag, Image, Sparkles, RefreshCw, Eye, X } from 'lucide-react';
 import { Product, CategoryType, DailyOffer } from '../types';
 
 interface DashboardProps {
@@ -52,6 +52,8 @@ export default function Dashboard({
 
   // Offer editor states
   const [isEditingOffer, setIsEditingOffer] = useState(false);
+  const [isBannerSectionOpen, setIsBannerSectionOpen] = useState(false);
+  const [isCategorySectionOpen, setIsCategorySectionOpen] = useState(false);
   const [selectedBannerId, setSelectedBannerId] = useState<string | null>(null);
 
   const [offerBadge, setOfferBadge] = useState('');
@@ -503,7 +505,10 @@ export default function Dashboard({
 
       {/* Managing Promotion Banner Block */}
       <section className="bg-white rounded-2xl border border-[#bfc9bc]/30 shadow-sm p-6 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#bfc9bc]/15 pb-4 gap-2">
+        <div
+          onClick={() => setIsBannerSectionOpen((prev) => !prev)}
+          className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#bfc9bc]/15 pb-4 gap-2 cursor-pointer"
+        >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-[#176c33]/10 rounded-full flex items-center justify-center text-[#176c33]">
               <Sparkles className="w-5 h-5 animate-pulse" />
@@ -517,16 +522,24 @@ export default function Dashboard({
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={handleStartCreateBanner}
-            className="flex items-center gap-2 px-5 py-2.5 bg-[#176c33] hover:bg-[#115326] text-white rounded-full transition-all text-xs font-bold cursor-pointer self-start sm:self-auto shadow-sm"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Novo Banner</span>
-          </button>
+          <div className="flex items-center gap-3 self-start sm:self-auto">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsBannerSectionOpen(true);
+                handleStartCreateBanner();
+              }}
+              className="flex items-center gap-2 px-5 py-2.5 bg-[#176c33] hover:bg-[#115326] text-white rounded-full transition-all text-xs font-bold cursor-pointer shadow-sm"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Novo Banner</span>
+            </button>
+            <ChevronDown className={`w-5 h-5 text-[#707a6e] transition-transform ${isBannerSectionOpen ? 'rotate-180' : ''}`} />
+          </div>
         </div>
 
+        {isBannerSectionOpen && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left Column: Banners List (6 cols) */}
           <div className="lg:col-span-6 space-y-4">
@@ -763,18 +776,22 @@ export default function Dashboard({
               </div>
             ) : null}
 
-            {saveSuccess && (
+           {saveSuccess && (
               <div className="bg-[#e8f5e9] text-[#1b5e20] px-4 py-2.5 rounded-xl border border-[#c8e6c9] text-xs font-bold flex items-center gap-1.5 animate-in slide-in-from-top-1.5 duration-200">
                 <span>✓ Sucesso! O carrossel de banners foi atualizado instantaneamente.</span>
               </div>
             )}
           </div>
         </div>
+        )}
       </section>
 
-      {/* Category Management Block */}
+     {/* Category Management Block */}
       <section className="bg-white rounded-2xl border border-[#bfc9bc]/30 shadow-sm p-6 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#bfc9bc]/15 pb-4 gap-2">
+        <div
+          onClick={() => setIsCategorySectionOpen((prev) => !prev)}
+          className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#bfc9bc]/15 pb-4 gap-2 cursor-pointer"
+        >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-[#176c33]/10 rounded-full flex items-center justify-center text-[#176c33]">
               <Tag className="w-5 h-5" />
@@ -788,8 +805,10 @@ export default function Dashboard({
               </p>
             </div>
           </div>
+          <ChevronDown className={`w-5 h-5 text-[#707a6e] transition-transform ${isCategorySectionOpen ? 'rotate-180' : ''}`} />
         </div>
 
+        {isCategorySectionOpen && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* New Category Form (Left / Col-Span-5) */}
           <div className="lg:col-span-5 space-y-4">
