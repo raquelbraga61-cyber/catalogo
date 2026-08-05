@@ -902,6 +902,7 @@ export default function Dashboard({
             </div>
           </div>
         </div>
+        )}
       </section>
 
       {/* Inventory Search table */}
