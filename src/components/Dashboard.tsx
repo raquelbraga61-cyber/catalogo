@@ -474,7 +474,8 @@ export default function Dashboard({
             <h3 className="font-bold text-lg text-[#181d18]" style={{ fontFamily: 'Plus Jakarta Sans' }}>
               Controle de Funcionamento do Site
             </h3>
-          
+          </div>
+
           <div className="flex-shrink-0 flex items-center gap-3">
             {isOffline ? (
               <div className="flex items-center gap-2 bg-red-50 text-red-700 px-3.5 py-2 rounded-full border border-red-200 text-xs font-black">
