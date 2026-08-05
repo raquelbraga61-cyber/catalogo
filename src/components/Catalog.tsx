@@ -301,10 +301,12 @@ export default function Catalog({
                               {product.name}
                             </h3>
                             
-                            <p className="text-xs text-[#707a6e] line-clamp-2 min-h-[32px] mt-1 mb-3">
-                              {product.description || 'Produto fresco e selecionado diretamente para a sua mesa.'}
-                            </p>
-
+                            {product.description && (
+                              <p className="text-xs text-[#707a6e] line-clamp-2 mt-1 mb-3">
+                                {product.description}
+                              </p>
+                            )}
+                            
                             {/* Sale Type Pills */}
                             <div className="flex gap-1.5 mb-4">
                               {resolvedAllowedUnits === 'BOTH' ? (
