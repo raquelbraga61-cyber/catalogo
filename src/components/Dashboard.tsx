@@ -472,10 +472,6 @@ export default function Dashboard({
             <h3 className="font-bold text-lg text-[#181d18]" style={{ fontFamily: 'Plus Jakarta Sans' }}>
               Controle de Funcionamento do Site
             </h3>
-            <p className="text-xs text-[#707a6e] max-w-2xl">
-              Ative o modo de manutenção para tirar o site do ar temporariamente para fazer mudanças ou reabastecer o estoque. Os clientes verão uma página informativa simpática de "Em Manutenção", mas você continuará logado com acesso completo ao painel administrativo.
-            </p>
-          </div>
           
           <div className="flex-shrink-0 flex items-center gap-3">
             {isOffline ? (
