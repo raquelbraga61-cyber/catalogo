@@ -148,23 +148,34 @@ const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<strin
 
     const finalImage = imageUrl || categoryImages[category] || categoryImages['Frutas'];
 
-    // Build data and trigger save action
-    onSave({
-      id: initialProduct?.id, // kept for editing
+    // Build data and trigger save action (avoid setting fields to undefined, Firestore rejects that)
+    const productData: any = {
       name: name.trim(),
       category,
       saleType: allowedUnits === 'FRAC' ? 'INTEIRO' : saleType,
       allowedUnits,
       price: allowedUnits === 'UNI' ? priceUnitNum : priceNum,
-      priceUnit: (allowedUnits === 'KG' || allowedUnits === 'FRAC') ? undefined : priceUnitNum,
-      weightInteiro: allowedUnits === 'FRAC' ? weightInteiroNum : undefined,
-      weightBanda: allowedUnits === 'FRAC' ? weightBandaNum : undefined,
-      weightQuarto: allowedUnits === 'FRAC' ? weightQuartoNum : undefined,
       description: description.trim(),
       imageUrl: finalImage,
       stock: parseInt(stock) || 120,
       isFavorite: initialProduct?.isFavorite ?? false
-    });
+    };
+
+    if (initialProduct?.id) {
+      productData.id = initialProduct.id;
+    }
+
+    if (allowedUnits === 'BOTH' || allowedUnits === 'UNI') {
+      productData.priceUnit = priceUnitNum;
+    }
+
+    if (allowedUnits === 'FRAC') {
+      productData.weightInteiro = weightInteiroNum;
+      productData.weightBanda = weightBandaNum;
+      productData.weightQuarto = weightQuartoNum;
+    }
+
+    onSave(productData);
 
     // Show success banner
     setShowSuccessModal(true);
