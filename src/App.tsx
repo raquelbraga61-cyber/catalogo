@@ -197,6 +197,29 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
   }, [categories]);
 
   useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'sacolao', 'footer'), (snap) => {
+      if (snap.exists()) {
+        skipNextFooterWrite.current = true;
+        setFooterInfo(snap.data() as FooterInfo);
+      } else {
+        setDoc(doc(db, 'sacolao', 'footer'), defaultFooterInfo);
+      }
+      footerLoaded.current = true;
+    });
+    return () => unsub();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!footerLoaded.current) return;
+    if (skipNextFooterWrite.current) {
+      skipNextFooterWrite.current = false;
+      return;
+    }
+    setDoc(doc(db, 'sacolao', 'footer'), footerInfo);
+  }, [footerInfo]);
+
+  useEffect(() => {
     const unsub = onSnapshot(doc(db, 'sacolao', 'dailyOffers'), (snap) => {
       if (snap.exists()) {
         skipNextDailyOffersWrite.current = true;
@@ -541,68 +564,184 @@ if (!isProductsReady) {
       </main>
 
       {/* Persistent footer */}
-      <footer className="bg-[#181d18] text-gray-300 border-t border-[#bfc9bc]/10 pt-16 pb-8">
-        <div className="max-w-7xl mx-auto px-5 grid grid-cols-1 md:grid-cols-3 gap-10">
-          
-          {/* Column 1: About */}
-          <div className="space-y-4">
-            <p className="font-black text-white text-xl tracking-tight" style={{ fontFamily: 'Plus Jakarta Sans' }}>
-              Sacolão Pimp
-            </p>
-            <p className="text-xs text-gray-400 leading-relaxed">
-              Selecionamos hortifrúti diariamente direto com produtores rurais. Higiene estrita, frescor imbatível e compromisso com o bem-estar da sua família na mesa.
-            </p>
-            <div className="pt-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-[#176c33]/30 text-emerald-400 border border-[#176c33]/50">
-                Produção Sustentável
-              </span>
+      <footer className="bg-[#181d18] text-gray-300 border-t border-[#bfc9bc]/10 pt-16 pb-8 relative">
+        {isAdmin && !isEditingFooter && (
+          <button
+            type="button"
+            onClick={() => {
+              setFooterDraft(footerInfo);
+              setIsEditingFooter(true);
+            }}
+            className="absolute top-4 right-5 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-[11px] font-bold transition-all cursor-pointer z-10"
+          >
+            <Pencil className="w-3.5 h-3.5" />
+            Editar Rodapé
+          </button>
+        )}
+
+        {isAdmin && isEditingFooter ? (
+          <div className="max-w-7xl mx-auto px-5 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-3">
+                <label className="block text-[10px] font-bold text-gray-400 uppercase">Texto Sobre a Loja</label>
+                <textarea
+                  value={footerDraft.aboutText}
+                  onChange={(e) => setFooterDraft({ ...footerDraft, aboutText: e.target.value })}
+                  rows={4}
+                  className="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-xs text-white focus:ring-2 focus:ring-[#176c33] focus:outline-none"
+                />
+                <label className="block text-[10px] font-bold text-gray-400 uppercase">Selo (ex: Produção Sustentável)</label>
+                <input
+                  type="text"
+                  value={footerDraft.badgeText}
+                  onChange={(e) => setFooterDraft({ ...footerDraft, badgeText: e.target.value })}
+                  className="w-full h-10 px-3 rounded-full bg-white/5 border border-white/10 text-xs text-white focus:ring-2 focus:ring-[#176c33] focus:outline-none"
+                />
+              </div>
+
+              <div className="space-y-3">
+                <label className="block text-[10px] font-bold text-gray-400 uppercase">Horário Segunda a Sábado</label>
+                <input
+                  type="text"
+                  value={footerDraft.weekdayHours}
+                  onChange={(e) => setFooterDraft({ ...footerDraft, weekdayHours: e.target.value })}
+                  className="w-full h-10 px-3 rounded-full bg-white/5 border border-white/10 text-xs text-white focus:ring-2 focus:ring-[#176c33] focus:outline-none"
+                />
+                <label className="block text-[10px] font-bold text-gray-400 uppercase">Horário Domingo</label>
+                <input
+                  type="text"
+                  value={footerDraft.sundayHours}
+                  onChange={(e) => setFooterDraft({ ...footerDraft, sundayHours: e.target.value })}
+                  className="w-full h-10 px-3 rounded-full bg-white/5 border border-white/10 text-xs text-white focus:ring-2 focus:ring-[#176c33] focus:outline-none"
+                />
+                <label className="block text-[10px] font-bold text-gray-400 uppercase">Nota sobre feriados</label>
+                <input
+                  type="text"
+                  value={footerDraft.holidayNote}
+                  onChange={(e) => setFooterDraft({ ...footerDraft, holidayNote: e.target.value })}
+                  className="w-full h-10 px-3 rounded-full bg-white/5 border border-white/10 text-xs text-white focus:ring-2 focus:ring-[#176c33] focus:outline-none"
+                />
+              </div>
+
+              <div className="space-y-3">
+                <label className="block text-[10px] font-bold text-gray-400 uppercase">Endereço</label>
+                <input
+                  type="text"
+                  value={footerDraft.address}
+                  onChange={(e) => setFooterDraft({ ...footerDraft, address: e.target.value })}
+                  className="w-full h-10 px-3 rounded-full bg-white/5 border border-white/10 text-xs text-white focus:ring-2 focus:ring-[#176c33] focus:outline-none"
+                />
+                <label className="block text-[10px] font-bold text-gray-400 uppercase">E-mail</label>
+                <input
+                  type="text"
+                  value={footerDraft.email}
+                  onChange={(e) => setFooterDraft({ ...footerDraft, email: e.target.value })}
+                  className="w-full h-10 px-3 rounded-full bg-white/5 border border-white/10 text-xs text-white focus:ring-2 focus:ring-[#176c33] focus:outline-none"
+                />
+                <label className="block text-[10px] font-bold text-gray-400 uppercase">CNPJ</label>
+                <input
+                  type="text"
+                  value={footerDraft.cnpj}
+                  onChange={(e) => setFooterDraft({ ...footerDraft, cnpj: e.target.value })}
+                  className="w-full h-10 px-3 rounded-full bg-white/5 border border-white/10 text-xs text-white focus:ring-2 focus:ring-[#176c33] focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-[10px] font-bold text-gray-400 uppercase">Texto de Copyright (rodapé final)</label>
+              <input
+                type="text"
+                value={footerDraft.copyrightText}
+                onChange={(e) => setFooterDraft({ ...footerDraft, copyrightText: e.target.value })}
+                className="w-full h-10 px-3 rounded-full bg-white/5 border border-white/10 text-xs text-white focus:ring-2 focus:ring-[#176c33] focus:outline-none"
+              />
+            </div>
+
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setFooterInfo(footerDraft);
+                  setIsEditingFooter(false);
+                }}
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-[#176c33] hover:bg-[#115326] text-white text-xs font-bold cursor-pointer transition-all"
+              >
+                <Save className="w-3.5 h-3.5" />
+                Salvar Rodapé
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsEditingFooter(false)}
+                className="px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold cursor-pointer transition-all"
+              >
+                Cancelar
+              </button>
             </div>
           </div>
+        ) : (
+          <div className="max-w-7xl mx-auto px-5 grid grid-cols-1 md:grid-cols-3 gap-10">
 
-          {/* Column 2: Schedule */}
-          <div className="space-y-4">
-            <p className="font-extrabold text-sm text-white uppercase tracking-wider" style={{ fontFamily: 'Plus Jakarta Sans' }}>
-              Horários de Atendimento
-            </p>
-            <div className="space-y-2.5 text-xs text-gray-400">
-              <div className="flex justify-between border-b border-gray-800 pb-1.5">
-                <span>Segunda á Sábado</span>
-                <span className="text-emerald-400 font-semibold">6:00 às 19:00</span>
-              </div>
-              <div className="flex justify-between border-b border-gray-800 pb-1.5">
-                <span>Domingo</span>
-                <span className="text-amber-400 font-semibold">7:00 às 10:00</span>
-              </div>
-              <p className="text-[10px] text-gray-500 leading-tight">
-                *Pedidos feitos em feriados estão sujeitos à alteração de fila de entrega.
+            {/* Column 1: About */}
+            <div className="space-y-4">
+              <p className="font-black text-white text-xl tracking-tight" style={{ fontFamily: 'Plus Jakarta Sans' }}>
+                Sacolão Pimp
               </p>
-            </div>
-          </div>
-
-          {/* Column 3: Contact & Identity */}
-          <div className="space-y-4">
-            <p className="font-extrabold text-sm text-white uppercase tracking-wider" style={{ fontFamily: 'Plus Jakarta Sans' }}>
-              Identificação & Suporte
-            </p>
-            <div className="space-y-2 text-xs text-gray-400">
-              <p className="flex items-start gap-2">
-                <span>Rua Euclides Barroso, N° 1453 - Santa Luzia, Canindé-CE</span>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                {footerInfo.aboutText}
               </p>
-              <p className="flex items-center gap-2">
-                <a href="mailto:sacolaocaninde@gmail.com" className="hover:underline text-[#6dbe7b] font-medium">sacolaocaninde@gmail.com</a>
-              </p>
-              <div className="pt-2 border-t border-gray-800 mt-2">
-                <span className="text-[10px] font-mono text-gray-500 uppercase block tracking-wider leading-none mb-1">CNPJ do Estabelecimento</span>
-                <span className="text-xs font-mono font-bold text-gray-300">24.318.866/0001-03</span>
+              <div className="pt-2">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-[#176c33]/30 text-emerald-400 border border-[#176c33]/50">
+                  {footerInfo.badgeText}
+                </span>
               </div>
             </div>
-          </div>
 
-        </div>
+            {/* Column 2: Schedule */}
+            <div className="space-y-4">
+              <p className="font-extrabold text-sm text-white uppercase tracking-wider" style={{ fontFamily: 'Plus Jakarta Sans' }}>
+                Horários de Atendimento
+              </p>
+              <div className="space-y-2.5 text-xs text-gray-400">
+                <div className="flex justify-between border-b border-gray-800 pb-1.5">
+                  <span>Segunda á Sábado</span>
+                  <span className="text-emerald-400 font-semibold">{footerInfo.weekdayHours}</span>
+                </div>
+                <div className="flex justify-between border-b border-gray-800 pb-1.5">
+                  <span>Domingo</span>
+                  <span className="text-amber-400 font-semibold">{footerInfo.sundayHours}</span>
+                </div>
+                <p className="text-[10px] text-gray-500 leading-tight">
+                  {footerInfo.holidayNote}
+                </p>
+              </div>
+            </div>
+
+            {/* Column 3: Contact & Identity */}
+            <div className="space-y-4">
+              <p className="font-extrabold text-sm text-white uppercase tracking-wider" style={{ fontFamily: 'Plus Jakarta Sans' }}>
+                Identificação & Suporte
+              </p>
+              <div className="space-y-2 text-xs text-gray-400">
+                <p className="flex items-start gap-2">
+                  <span>{footerInfo.address}</span>
+                </p>
+                <p className="flex items-center gap-2">
+                  <a href={`mailto:${footerInfo.email}`} className="hover:underline text-[#6dbe7b] font-medium">{footerInfo.email}</a>
+                </p>
+                <div className="pt-2 border-t border-gray-800 mt-2">
+                  <span className="text-[10px] font-mono text-gray-500 uppercase block tracking-wider leading-none mb-1">CNPJ do Estabelecimento</span>
+                  <span className="text-xs font-mono font-bold text-gray-300">{footerInfo.cnpj}</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        )}
 
         {/* Bottom Bar copyright lines */}
         <div className="max-w-7xl mx-auto px-5 pt-8 mt-12 border-t border-gray-800 text-center text-xs text-gray-500 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p>© 2026 Sacolão Pimp. Todos os direitos reservados. Qualidade de colheita e respeito ao cliente.</p>
+          <p>{footerInfo.copyrightText}</p>
           <div className="flex gap-4 text-[10px]">
             <button
               onClick={() => setActiveFooterModal('terms')}
