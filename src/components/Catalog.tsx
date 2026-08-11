@@ -256,11 +256,11 @@ export default function Catalog({
                           displayPrice = product.saleType === 'KG' ? Math.round(product.price * 0.2) : product.price;
                         }
                       } else if (currentUnit === 'INTEIRO') {
-                        displayPrice = product.price;
+                        displayPrice = product.price * (product.weightInteiro ?? 1);
                       } else if (currentUnit === 'BANDA') {
-                        displayPrice = product.price * 0.5;
+                        displayPrice = product.price * (product.weightBanda ?? 0.5);
                       } else if (currentUnit === 'QUARTO') {
-                        displayPrice = product.price * 0.25;
+                        displayPrice = product.price * (product.weightQuarto ?? 0.25);
                       }
 
                       return (
