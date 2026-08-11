@@ -46,3 +46,15 @@ export interface DailyOffer {
   imageUrl: string;
 }
 
+export interface FooterInfo {
+  aboutText: string;
+  badgeText: string;
+  weekdayHours: string;
+  sundayHours: string;
+  holidayNote: string;
+  address: string;
+  email: string;
+  cnpj: string;
+  copyrightText: string;
+}
+
