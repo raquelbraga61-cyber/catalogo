@@ -12,6 +12,9 @@ export interface Product {
   allowedUnits?: 'KG' | 'UNI' | 'BOTH' | 'FRAC';
   price: number; // Price per unit or per KG in R$
   priceUnit?: number; // Distinct Price per unit if sale format is BOTH/mixed
+  weightInteiro?: number; // Peso estimado (kg) do produto Inteiro, usado quando allowedUnits = FRAC
+  weightBanda?: number; // Peso estimado (kg) da Banda (metade)
+  weightQuarto?: number; // Peso estimado (kg) do Quarto (1/4)
   description: string;
   imageUrl: string;
   stock?: number; // stock count
