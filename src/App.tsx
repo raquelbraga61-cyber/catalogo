@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X } from 'lucide-react';
+import { X, Pencil, Save } from 'lucide-react';
 import { DEFAULT_PRODUCTS, DEFAULT_DAILY_OFFER } from './data';
-import { Product, CartItem, CustomerInfo, ViewType, FormMode, DailyOffer } from './types';
+import { Product, CartItem, CustomerInfo, ViewType, FormMode, DailyOffer, FooterInfo } from './types';
 import { db } from './firebase';
 import { doc, onSnapshot, setDoc, deleteDoc, collection, writeBatch, getDoc } from 'firebase/firestore';
 import Header from './components/Header';
@@ -82,6 +82,23 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
   ]);
   const categoriesLoaded = useRef(false);
   const skipNextCategoriesWrite = useRef(false);
+
+  const defaultFooterInfo: FooterInfo = {
+    aboutText: 'Selecionamos hortifrúti diariamente direto com produtores rurais. Higiene estrita, frescor imbatível e compromisso com o bem-estar da sua família na mesa.',
+    badgeText: 'Produção Sustentável',
+    weekdayHours: '6:00 às 19:00',
+    sundayHours: '7:00 às 10:00',
+    holidayNote: '*Pedidos feitos em feriados estão sujeitos à alteração de fila de entrega.',
+    address: 'Rua Euclides Barroso, N° 1453 - Santa Luzia, Canindé-CE',
+    email: 'sacolaocaninde@gmail.com',
+    cnpj: '24.318.866/0001-03',
+    copyrightText: '© 2026 Sacolão Pimp. Todos os direitos reservados. Qualidade de colheita e respeito ao cliente.'
+  };
+  const [footerInfo, setFooterInfo] = useState<FooterInfo>(defaultFooterInfo);
+  const [isEditingFooter, setIsEditingFooter] = useState(false);
+  const [footerDraft, setFooterDraft] = useState<FooterInfo>(defaultFooterInfo);
+  const footerLoaded = useRef(false);
+  const skipNextFooterWrite = useRef(false);
 
   const handleAddCategory = (name: string, icon: string) => {
     if (!name.trim()) return;
