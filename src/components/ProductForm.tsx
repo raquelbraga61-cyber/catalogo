@@ -23,6 +23,9 @@ export default function ProductForm({
   const [allowedUnits, setAllowedUnits] = useState<'KG' | 'UNI' | 'BOTH'>('BOTH');
   const [price, setPrice] = useState('');
   const [priceUnit, setPriceUnit] = useState('');
+  const [weightInteiro, setWeightInteiro] = useState('');
+  const [weightBanda, setWeightBanda] = useState('');
+  const [weightQuarto, setWeightQuarto] = useState('');
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [stock, setStock] = useState('100');
@@ -47,6 +50,9 @@ export default function ProductForm({
       setAllowedUnits(initialProduct.allowedUnits || 'BOTH');
       setPrice(initialProduct.price.toString());
       setPriceUnit(initialProduct.priceUnit ? initialProduct.priceUnit.toString() : '');
+      setWeightInteiro(initialProduct.weightInteiro ? initialProduct.weightInteiro.toString() : '');
+      setWeightBanda(initialProduct.weightBanda ? initialProduct.weightBanda.toString() : '');
+      setWeightQuarto(initialProduct.weightQuarto ? initialProduct.weightQuarto.toString() : '');
       setDescription(initialProduct.description || '');
       setImageUrl(initialProduct.imageUrl || '');
       setStock((initialProduct.stock || 100).toString());
@@ -58,6 +64,9 @@ export default function ProductForm({
       setAllowedUnits('BOTH');
       setPrice('');
       setPriceUnit('');
+      setWeightInteiro('');
+      setWeightBanda('');
+      setWeightQuarto('');
       setDescription('');
       setImageUrl('');
       setStock('100');
@@ -110,7 +119,20 @@ const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<strin
     if (allowedUnits === 'BOTH' || allowedUnits === 'KG' || allowedUnits === 'FRAC') {
       priceNum = parseFloat(price);
       if (isNaN(priceNum) || priceNum <= 0) {
-        alert(allowedUnits === 'FRAC' ? 'Por favor, informe um Preço para o produto Inteiro válido e maior que R$ 0,00' : 'Por favor, informe um Preço por Quilo (KG) válido e maior que R$ 0,00');
+        alert('Por favor, informe um Preço por Quilo (KG) válido e maior que R$ 0,00');
+        return;
+      }
+    }
+
+    let weightInteiroNum = 0;
+    let weightBandaNum = 0;
+    let weightQuartoNum = 0;
+    if (allowedUnits === 'FRAC') {
+      weightInteiroNum = parseFloat(weightInteiro);
+      weightBandaNum = parseFloat(weightBanda);
+      weightQuartoNum = parseFloat(weightQuarto);
+      if (isNaN(weightInteiroNum) || weightInteiroNum <= 0 || isNaN(weightBandaNum) || weightBandaNum <= 0 || isNaN(weightQuartoNum) || weightQuartoNum <= 0) {
+        alert('Por favor, informe o peso estimado (em kg) do Inteiro, da Banda e do Quarto, todos maiores que 0.');
         return;
       }
     }
@@ -135,6 +157,9 @@ const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<strin
       allowedUnits,
       price: allowedUnits === 'UNI' ? priceUnitNum : priceNum,
       priceUnit: (allowedUnits === 'KG' || allowedUnits === 'FRAC') ? undefined : priceUnitNum,
+      weightInteiro: allowedUnits === 'FRAC' ? weightInteiroNum : undefined,
+      weightBanda: allowedUnits === 'FRAC' ? weightBandaNum : undefined,
+      weightQuarto: allowedUnits === 'FRAC' ? weightQuartoNum : undefined,
       description: description.trim(),
       imageUrl: finalImage,
       stock: parseInt(stock) || 120,
@@ -350,7 +375,7 @@ const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<strin
                 {(allowedUnits === 'BOTH' || allowedUnits === 'KG' || allowedUnits === 'FRAC') && (
                   <div className="space-y-1.5 pb-1">
                     <label htmlFor="price" className="block text-xs font-bold text-[#40493f] px-1 uppercase">
-                      {allowedUnits === 'FRAC' ? 'Preço do Produto Inteiro (R$)' : 'Preço por Quilo (R$/KG)'}
+                      Preço por Quilo (R$/KG)
                     </label>
                     <div className="relative">
                       <span className="absolute left-5 top-1/2 -translate-y-1/2 text-sm font-bold text-[#707a6e]">
@@ -369,6 +394,60 @@ const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<strin
                       />
                     </div>
                   </div>
+                )}
+
+                {/* Estimated weights per cut - Show only if FRAC */}
+                {allowedUnits === 'FRAC' && (
+                  <>
+                    <div className="space-y-1.5 pb-1">
+                      <label htmlFor="weightInteiro" className="block text-xs font-bold text-[#40493f] px-1 uppercase">
+                        Peso Estimado - Inteiro (KG)
+                      </label>
+                      <input
+                        type="number"
+                        id="weightInteiro"
+                        required
+                        step="0.01"
+                        min="0.01"
+                        value={weightInteiro}
+                        onChange={(e) => setWeightInteiro(e.target.value)}
+                        placeholder="Ex: 5"
+                        className="w-full h-12 px-5 rounded-full bg-[#f1f5ed] border-none focus:ring-2 focus:ring-[#176c33] focus:bg-white text-sm transition-all focus:outline-none"
+                      />
+                    </div>
+                    <div className="space-y-1.5 pb-1">
+                      <label htmlFor="weightBanda" className="block text-xs font-bold text-[#40493f] px-1 uppercase">
+                        Peso Estimado - Banda (KG)
+                      </label>
+                      <input
+                        type="number"
+                        id="weightBanda"
+                        required
+                        step="0.01"
+                        min="0.01"
+                        value={weightBanda}
+                        onChange={(e) => setWeightBanda(e.target.value)}
+                        placeholder="Ex: 2.5"
+                        className="w-full h-12 px-5 rounded-full bg-[#f1f5ed] border-none focus:ring-2 focus:ring-[#176c33] focus:bg-white text-sm transition-all focus:outline-none"
+                      />
+                    </div>
+                    <div className="space-y-1.5 pb-1">
+                      <label htmlFor="weightQuarto" className="block text-xs font-bold text-[#40493f] px-1 uppercase">
+                        Peso Estimado - Quarto (KG)
+                      </label>
+                      <input
+                        type="number"
+                        id="weightQuarto"
+                        required
+                        step="0.01"
+                        min="0.01"
+                        value={weightQuarto}
+                        onChange={(e) => setWeightQuarto(e.target.value)}
+                        placeholder="Ex: 1.25"
+                        className="w-full h-12 px-5 rounded-full bg-[#f1f5ed] border-none focus:ring-2 focus:ring-[#176c33] focus:bg-white text-sm transition-all focus:outline-none"
+                      />
+                    </div>
+                  </>
                 )}
 
                 {/* Price per Unit - Show if BOTH or UNI */}
