@@ -115,6 +115,26 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
     setCategories((prev) => prev.filter((cat) => cat.name !== name));
   };
 
+  const handleEditCategory = (oldName: string, newName: string) => {
+    const trimmedNew = newName.trim();
+    if (!trimmedNew || trimmedNew === oldName) return;
+    if (categories.some((cat) => cat.name.toLowerCase() === trimmedNew.toLowerCase() && cat.name !== oldName)) {
+      alert('Já existe uma categoria com esse nome.');
+      return;
+    }
+    setCategories((prev) => prev.map((cat) => (cat.name === oldName ? { ...cat, name: trimmedNew } : cat)));
+
+    // Update every product that used the old category name so nothing gets orphaned
+    const affectedProducts = products.filter((p) => p.category === oldName);
+    if (affectedProducts.length > 0) {
+      const batch = writeBatch(db);
+      affectedProducts.forEach((p) => {
+        batch.set(doc(db, 'products', p.id), { ...p, category: trimmedNew });
+      });
+      batch.commit();
+    }
+  };
+
   // 2. Navigation & Interface States
   const [currentView, setCurrentView] = useState<ViewType>('catalog');
   const [activeFooterModal, setActiveFooterModal] = useState<'terms' | 'privacy' | null>(null);
@@ -445,6 +465,7 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
             categories={categories}
             onAddCategory={handleAddCategory}
             onDeleteCategory={handleDeleteCategory}
+            onEditCategory={handleEditCategory}
             isOffline={isOffline}
             onToggleOffline={handleToggleOffline}
           />
