@@ -40,7 +40,7 @@ export default function Dashboard({
   categories = [],
   onAddCategory,
   onDeleteCategory,
-  onEditCategory,,
+  onEditCategory,
   isOffline = false,
   onToggleOffline
 }: DashboardProps) {
