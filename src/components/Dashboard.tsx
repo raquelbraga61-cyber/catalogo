@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PlusCircle, Plus, Search, Trash2, Edit, TrendingUp, ChevronLeft, ChevronRight, ChevronDown, ShoppingCart, Tag, Image, Sparkles, RefreshCw, Eye, X } from 'lucide-react';
+import { PlusCircle, Plus, Search, Trash2, Edit, TrendingUp, ChevronLeft, ChevronRight, ChevronDown, ShoppingCart, Tag, Image, Sparkles, RefreshCw, Eye, X, Save } from 'lucide-react';
 import { Product, CategoryType, DailyOffer } from '../types';
 
 interface DashboardProps {
@@ -15,6 +15,7 @@ interface DashboardProps {
   categories?: { name: string; icon: string }[];
   onAddCategory?: (name: string, icon: string) => void;
   onDeleteCategory?: (name: string) => void;
+  onEditCategory?: (oldName: string, newName: string) => void;
   isOffline?: boolean;
   onToggleOffline?: (val: boolean) => void;
 }
@@ -39,6 +40,7 @@ export default function Dashboard({
   categories = [],
   onAddCategory,
   onDeleteCategory,
+  onEditCategory,,
   isOffline = false,
   onToggleOffline
 }: DashboardProps) {
@@ -145,6 +147,8 @@ export default function Dashboard({
 
   // Dynamic Categories states
   const [newCatName, setNewCatName] = useState('');
+  const [editingCatName, setEditingCatName] = useState<string | null>(null);
+  const [editCatDraft, setEditCatDraft] = useState('');
   const [newCatIcon, setNewCatIcon] = useState('🍎');
   const [catMsg, setCatMsg] = useState('');
   const [activeOrderPeriod, setActiveOrderPeriod] = useState<string | null>(null);
