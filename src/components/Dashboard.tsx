@@ -868,45 +868,98 @@ export default function Dashboard({
                     key={cat.name}
                     className="flex items-center justify-between p-3 rounded-xl border border-[#bfc9bc]/25 bg-[#f7fbf2] hover:bg-white transition-all shadow-xs"
                   >
-                    <div className="flex items-center gap-3">
-                      {cat.icon && (
-                        <span className="text-xl bg-white p-1.5 shadow-2xs rounded-lg border border-black/5 flex items-center justify-center w-9 h-9">
-                          {cat.icon}
-                        </span>
-                      )}
-                      <div>
-                        <p className="text-xs font-bold text-[#181d18]">{cat.name}</p>
-                        <p className="text-[10px] text-[#707a6e]">
-                          {categoryProductsCount} {categoryProductsCount === 1 ? 'produto' : 'produtos'}
-                        </p>
+                    {editingCatName === cat.name ? (
+                      <div className="flex items-center gap-2 flex-1">
+                        <input
+                          type="text"
+                          autoFocus
+                          value={editCatDraft}
+                          onChange={(e) => setEditCatDraft(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              onEditCategory?.(cat.name, editCatDraft);
+                              setEditingCatName(null);
+                            } else if (e.key === 'Escape') {
+                              setEditingCatName(null);
+                            }
+                          }}
+                          className="flex-1 h-9 px-3 rounded-lg bg-white border border-[#176c33] text-xs focus:outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onEditCategory?.(cat.name, editCatDraft);
+                            setEditingCatName(null);
+                          }}
+                          className="text-[#176c33] hover:bg-[#176c33]/10 p-1.5 rounded-lg transition-colors cursor-pointer"
+                          title="Salvar novo nome"
+                        >
+                          <Save className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingCatName(null)}
+                          className="text-[#bfc9bc] hover:bg-black/5 p-1.5 rounded-lg transition-colors cursor-pointer"
+                          title="Cancelar"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
                       </div>
-                    </div>
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-3">
+                          {cat.icon && (
+                            <span className="text-xl bg-white p-1.5 shadow-2xs rounded-lg border border-black/5 flex items-center justify-center w-9 h-9">
+                              {cat.icon}
+                            </span>
+                          )}
+                          <div>
+                            <p className="text-xs font-bold text-[#181d18]">{cat.name}</p>
+                            <p className="text-[10px] text-[#707a6e]">
+                              {categoryProductsCount} {categoryProductsCount === 1 ? 'produto' : 'produtos'}
+                            </p>
+                          </div>
+                        </div>
 
-                    {/* Allow deleting any category, showing a native confirmation */}
-                    {onDeleteCategory && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const hasProducts = categoryProductsCount > 0;
-                          const msg = hasProducts
-                            ? `Alerta: Existem ${categoryProductsCount} produtos usando a categoria "${cat.name}". Se você deletá-la, esses produtos continuarão gravados mas sem categoria correspondente. Deseja deletar mesmo assim?`
-                            : `Tem certeza que deseja remover a categoria "${cat.name}"?`;
-                          if (window.confirm(msg)) {
-                            onDeleteCategory(cat.name);
-                          }
-                        }}
-                        className="text-[#bfc9bc] hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
-                        title="Remover Categoria"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                        <div className="flex items-center gap-1">
+                          {onEditCategory && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingCatName(cat.name);
+                                setEditCatDraft(cat.name);
+                              }}
+                              className="text-[#bfc9bc] hover:text-[#176c33] p-1.5 rounded-lg hover:bg-[#176c33]/10 transition-colors cursor-pointer"
+                              title="Editar Categoria"
+                            >
+                              <Edit className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+
+                          {/* Allow deleting any category, showing a native confirmation */}
+                          {onDeleteCategory && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const hasProducts = categoryProductsCount > 0;
+                                const msg = hasProducts
+                                  ? `Alerta: Existem ${categoryProductsCount} produtos usando a categoria "${cat.name}". Se você deletá-la, esses produtos continuarão gravados mas sem categoria correspondente. Deseja deletar mesmo assim?`
+                                  : `Tem certeza que deseja remover a categoria "${cat.name}"?`;
+                                if (window.confirm(msg)) {
+                                  onDeleteCategory(cat.name);
+                                }
+                              }}
+                              className="text-[#bfc9bc] hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
+                              title="Remover Categoria"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </>
                     )}
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
+                  
       )}
       </section>
 
