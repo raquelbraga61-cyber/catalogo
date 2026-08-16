@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Camera, Save, X, Info, HelpCircle } from 'lucide-react';
-import { Product, CategoryType, FormMode } from '../types';
+import { Product, CategoryType, FormMode, ProductVariant } from '../types';
 
 interface ProductFormProps {
   mode: FormMode;
@@ -26,6 +26,8 @@ export default function ProductForm({
   const [weightInteiro, setWeightInteiro] = useState('');
   const [weightBanda, setWeightBanda] = useState('');
   const [weightQuarto, setWeightQuarto] = useState('');
+  const [hasVariants, setHasVariants] = useState(false);
+  const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [stock, setStock] = useState('100');
@@ -53,6 +55,8 @@ export default function ProductForm({
       setWeightInteiro(initialProduct.weightInteiro ? initialProduct.weightInteiro.toString() : '');
       setWeightBanda(initialProduct.weightBanda ? initialProduct.weightBanda.toString() : '');
       setWeightQuarto(initialProduct.weightQuarto ? initialProduct.weightQuarto.toString() : '');
+      setHasVariants(!!(initialProduct.variants && initialProduct.variants.length > 0));
+      setVariants(initialProduct.variants && initialProduct.variants.length > 0 ? initialProduct.variants : []);
       setDescription(initialProduct.description || '');
       setImageUrl(initialProduct.imageUrl || '');
       setStock((initialProduct.stock || 100).toString());
@@ -67,6 +71,8 @@ export default function ProductForm({
       setWeightInteiro('');
       setWeightBanda('');
       setWeightQuarto('');
+      setHasVariants(false);
+      setVariants([]);
       setDescription('');
       setImageUrl('');
       setStock('100');
