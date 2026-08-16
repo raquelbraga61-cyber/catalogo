@@ -26,6 +26,7 @@ export default function Catalog({
   const [activeCategory, setActiveCategory] = useState<CategoryType>('Tudo');
   const [showRegionsModal, setShowRegionsModal] = useState(false);
   const [selectedUnits, setSelectedUnits] = useState<Record<string, 'UNI' | 'KG'>>({});
+  const [selectedVariantIndex, setSelectedVariantIndex] = useState<Record<string, number>>({});
   const [currentSlide, setCurrentSlide] = useState(0);
 
   // Auto transition every 5 seconds
@@ -244,7 +245,7 @@ export default function Catalog({
                         currentUnit = (selectedUnits[product.id] as 'KG' | 'UNI') || product.saleType;
                       }
 
-                      const isOriginal = currentUnit === product.saleType;
+                     const isOriginal = currentUnit === product.saleType;
                       let displayPrice = product.price;
 
                       if (currentUnit === 'KG') {
@@ -261,6 +262,13 @@ export default function Catalog({
                         displayPrice = product.price * (product.weightBanda ?? 0.5);
                       } else if (currentUnit === 'QUARTO') {
                         displayPrice = product.price * (product.weightQuarto ?? 0.25);
+                      }
+
+                      const hasVariants = !!(product.variants && product.variants.length > 0);
+                      const currentVariantIndex = selectedVariantIndex[product.id] ?? 0;
+                      const currentVariant = hasVariants ? product.variants![currentVariantIndex] : undefined;
+                      if (currentVariant) {
+                        displayPrice = currentVariant.price;
                       }
 
                       return (
@@ -374,8 +382,28 @@ export default function Catalog({
                                 <div className="flex-1 text-center py-1.5 rounded-full text-[10px] uppercase font-extrabold tracking-wide border bg-[#176c33]/15 text-[#176c33] border-[#176c33]/30 select-none">
                                   Venda: {resolvedAllowedUnits === 'KG' ? 'Apenas por Quilo' : 'Apenas por Unidade'}
                                 </div>
-                              )}
+                             )}
                             </div>
+
+                            {/* Variant Selector (e.g. same product in 500g / 1kg) */}
+                            {hasVariants && (
+                              <div className="flex flex-wrap gap-1.5 mb-4">
+                                {product.variants!.map((variant, vIndex) => (
+                                  <button
+                                    key={variant.label + vIndex}
+                                    type="button"
+                                    onClick={() => setSelectedVariantIndex(prev => ({ ...prev, [product.id]: vIndex }))}
+                                    className={`px-3 py-1.5 rounded-full text-[10px] uppercase font-bold tracking-wide border transition-all cursor-pointer ${
+                                      currentVariantIndex === vIndex
+                                        ? 'bg-[#176c33] text-white border-[#176c33] font-extrabold shadow-sm'
+                                        : 'bg-white text-[#707a6e] border-[#bfc9bc]/30 hover:bg-[#f1f5ed]'
+                                    }`}
+                                  >
+                                    {variant.label}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
                           </div>
 
                           {/* Price and Add button */}
@@ -387,7 +415,7 @@ export default function Catalog({
                               <span className="text-[#176c33] font-extrabold text-base md:text-lg whitespace-nowrap">
                                 <span className="mr-0.5">R$</span>{displayPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 <span className="text-[10px] font-normal text-[#707a6e] ml-0.5">
-                                  /{currentUnit === 'QUARTO' ? '1/4' : currentUnit.toLowerCase()}
+                                  {currentVariant ? `/ ${currentVariant.label}` : `/${currentUnit === 'QUARTO' ? '1/4' : currentUnit.toLowerCase()}`}
                                 </span>
                               </span>
                             </div>
