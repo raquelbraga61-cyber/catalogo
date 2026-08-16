@@ -144,10 +144,21 @@ const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<strin
     }
 
     let priceUnitNum = 0;
-    if (allowedUnits === 'BOTH' || allowedUnits === 'UNI') {
+    if ((allowedUnits === 'BOTH' || allowedUnits === 'UNI') && !(allowedUnits === 'UNI' && hasVariants)) {
       priceUnitNum = parseFloat(priceUnit);
       if (isNaN(priceUnitNum) || priceUnitNum <= 0) {
         alert('Por favor, informe um Preço por Unidade (UNI) válido e maior que R$ 0,00');
+        return;
+      }
+    }
+
+    let cleanVariants: ProductVariant[] = [];
+    if (allowedUnits === 'UNI' && hasVariants) {
+      cleanVariants = variants
+        .map((v) => ({ label: v.label.trim(), price: v.price }))
+        .filter((v) => v.label && v.price > 0);
+      if (cleanVariants.length < 2) {
+        alert('Adicione pelo menos 2 variações (ex: 500g e 1kg), cada uma com nome e preço válidos.');
         return;
       }
     }
@@ -160,7 +171,7 @@ const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<strin
       category,
       saleType: allowedUnits === 'FRAC' ? 'INTEIRO' : saleType,
       allowedUnits,
-      price: allowedUnits === 'UNI' ? priceUnitNum : priceNum,
+      price: allowedUnits === 'UNI' ? (hasVariants ? cleanVariants[0].price : priceUnitNum) : priceNum,
       description: description.trim(),
       imageUrl: finalImage,
       stock: parseInt(stock) || 120,
@@ -171,7 +182,7 @@ const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<strin
       productData.id = initialProduct.id;
     }
 
-    if (allowedUnits === 'BOTH' || allowedUnits === 'UNI') {
+    if ((allowedUnits === 'BOTH' || allowedUnits === 'UNI') && !(allowedUnits === 'UNI' && hasVariants)) {
       productData.priceUnit = priceUnitNum;
     }
 
@@ -179,6 +190,10 @@ const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<strin
       productData.weightInteiro = weightInteiroNum;
       productData.weightBanda = weightBandaNum;
       productData.weightQuarto = weightQuartoNum;
+    }
+
+    if (allowedUnits === 'UNI' && hasVariants) {
+      productData.variants = cleanVariants;
     }
 
     onSave(productData);
@@ -467,8 +482,8 @@ const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<strin
                   </>
                 )}
 
-                {/* Price per Unit - Show if BOTH or UNI */}
-                {(allowedUnits === 'BOTH' || allowedUnits === 'UNI') && (
+                {/* Price per Unit - Show if BOTH or UNI (and no variants active) */}
+                {(allowedUnits === 'BOTH' || allowedUnits === 'UNI') && !(allowedUnits === 'UNI' && hasVariants) && (
                   <div className="space-y-1.5 pb-1">
                     <label htmlFor="priceUnit" className="block text-xs font-bold text-[#40493f] px-1 uppercase">
                       Preço por Unidade (R$/UNI)
@@ -480,7 +495,7 @@ const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<strin
                       <input
                         type="number"
                         id="priceUnit"
-                        required={allowedUnits === 'BOTH' || allowedUnits === 'UNI'}
+                        required={(allowedUnits === 'BOTH' || allowedUnits === 'UNI') && !(allowedUnits === 'UNI' && hasVariants)}
                         step="0.01"
                         min="0.01"
                         value={priceUnit}
@@ -489,6 +504,86 @@ const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<strin
                         className="w-full h-12 pl-12 pr-5 rounded-full bg-[#f1f5ed] border-none focus:ring-2 focus:ring-[#176c33] focus:bg-white text-sm transition-all focus:outline-none"
                       />
                     </div>
+                  </div>
+                )}
+
+                {/* Product Variants (e.g. same butter in 500g and 1kg, each with its own price) */}
+                {allowedUnits === 'UNI' && (
+                  <div className="space-y-2 pb-1 col-span-1 md:col-span-2 lg:col-span-3 bg-[#f7fbf2] border border-[#bfc9bc]/30 rounded-2xl p-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={hasVariants}
+                        onChange={(e) => {
+                          setHasVariants(e.target.checked);
+                          if (e.target.checked && variants.length === 0) {
+                            setVariants([{ label: '', price: 0 }, { label: '', price: 0 }]);
+                          }
+                        }}
+                        className="w-4 h-4 accent-[#176c33]"
+                      />
+                      <span className="text-xs font-bold text-[#40493f] uppercase">
+                        Este produto tem variações (ex: tamanhos diferentes)?
+                      </span>
+                    </label>
+
+                    {hasVariants && (
+                      <div className="space-y-2 pt-2">
+                        <p className="text-[11px] text-[#707a6e]">
+                          Cada variação tem seu próprio preço. Ex: "500g" por R$ 12,00 e "1kg" por R$ 22,00.
+                        </p>
+                        {variants.map((variant, index) => (
+                          <div key={index} className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={variant.label}
+                              onChange={(e) => {
+                                const updated = [...variants];
+                                updated[index] = { ...updated[index], label: e.target.value };
+                                setVariants(updated);
+                              }}
+                              placeholder="Nome (ex: 500g)"
+                              className="flex-1 h-11 px-4 rounded-full bg-white border border-[#bfc9bc]/40 text-sm focus:ring-2 focus:ring-[#176c33] focus:outline-none"
+                            />
+                            <div className="relative w-32">
+                              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold text-[#707a6e]">
+                                R$
+                              </span>
+                              <input
+                                type="number"
+                                step="0.01"
+                                min="0.01"
+                                value={variant.price || ''}
+                                onChange={(e) => {
+                                  const updated = [...variants];
+                                  updated[index] = { ...updated[index], price: parseFloat(e.target.value) || 0 };
+                                  setVariants(updated);
+                                }}
+                                placeholder="0,00"
+                                className="w-full h-11 pl-9 pr-3 rounded-full bg-white border border-[#bfc9bc]/40 text-sm focus:ring-2 focus:ring-[#176c33] focus:outline-none"
+                              />
+                            </div>
+                            {variants.length > 2 && (
+                              <button
+                                type="button"
+                                onClick={() => setVariants(variants.filter((_, i) => i !== index))}
+                                className="text-[#99405c] hover:bg-red-50 p-2 rounded-full transition-colors cursor-pointer"
+                                title="Remover variação"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => setVariants([...variants, { label: '', price: 0 }])}
+                          className="text-xs font-bold text-[#176c33] hover:underline cursor-pointer pt-1"
+                        >
+                          + Adicionar outra variação
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
 
