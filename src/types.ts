@@ -4,6 +4,11 @@
 
 export type CategoryType = string;
 
+export interface ProductVariant {
+  label: string; // e.g. "500g", "1kg", "Caixa com 6"
+  price: number;
+}
+
 export interface Product {
   id: string; // e.g. "HT-001"
   name: string;
@@ -15,6 +20,8 @@ export interface Product {
   weightInteiro?: number; // Peso estimado (kg) do produto Inteiro, usado quando allowedUnits = FRAC
   weightBanda?: number; // Peso estimado (kg) da Banda (metade)
   weightQuarto?: number; // Peso estimado (kg) do Quarto (1/4)
+  variants?: ProductVariant[]; // Opções de venda do mesmo produto (ex: 500g e 1kg), cada uma com seu próprio preço
+  variantLabel?: string; // Preenchido apenas no carrinho, identifica qual variação foi escolhida
   description: string;
   imageUrl: string;
   stock?: number; // stock count
