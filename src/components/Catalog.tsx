@@ -419,18 +419,39 @@ export default function Catalog({
                                 </span>
                               </span>
                             </div>
+                        </div>
 
-                            <button
-                              onClick={() => onAddToCart({
-                                ...product,
-                                saleType: currentUnit,
-                                price: displayPrice
-                              })}
-                              className="w-10 h-10 rounded-full bg-[#176c33] hover:bg-[#115326] text-white flex items-center justify-center transition-all duration-300 active:scale-90 shadow-md shadow-[#176c33]/15 cursor-pointer shrink-0"
-                              aria-label="Adicionar ao carrinho"
-                            >
-                              <Plus className="w-5 h-5" />
-                            </button>
+                            {currentUnit === 'KG' ? (
+                              <div className="grid grid-cols-4 gap-1 flex-1 ml-3">
+                                {[0.5, 1, 1.5, 2].map((w) => (
+                                  <button
+                                    key={w}
+                                    type="button"
+                                    onClick={() => onAddToCart({
+                                      ...product,
+                                      saleType: currentUnit,
+                                      price: displayPrice
+                                    }, w)}
+                                    className="py-1.5 rounded-full text-[9px] font-extrabold bg-[#176c33]/10 hover:bg-[#176c33] hover:text-white text-[#176c33] transition-all cursor-pointer whitespace-nowrap"
+                                  >
+                                    {w < 1 ? `${w * 1000}G` : `${w.toString().replace('.', ',')}K`}
+                                  </button>
+                                ))}
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => onAddToCart({
+                                  ...product,
+                                  saleType: currentUnit,
+                                  price: displayPrice,
+                                  variantLabel: currentVariant?.label
+                                })}
+                                className="w-10 h-10 rounded-full bg-[#176c33] hover:bg-[#115326] text-white flex items-center justify-center transition-all duration-300 active:scale-90 shadow-md shadow-[#176c33]/15 cursor-pointer shrink-0"
+                                aria-label="Adicionar ao carrinho"
+                              >
+                                <Plus className="w-5 h-5" />
+                              </button>
+                            )}
                           </div>
                         </div>
                       );
