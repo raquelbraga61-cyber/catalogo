@@ -419,7 +419,6 @@ export default function Catalog({
                                 </span>
                               </span>
                             </div>
-                        </div>
 
                             {currentUnit === 'KG' ? (
                               <div className="grid grid-cols-4 gap-1 flex-1 ml-3">
