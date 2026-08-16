@@ -79,7 +79,7 @@ export default function Header({
             {renderLeftAction()}
             <span 
               onClick={() => onNavigate('catalog')}
-              className="font-display-lg text-2xl font-bold text-[#176c33] tracking-tight hover:opacity-90 cursor-pointer"
+              className="font-display-lg text-lg sm:text-2xl font-bold text-[#176c33] tracking-tight hover:opacity-90 cursor-pointer whitespace-nowrap"
               style={{ fontFamily: 'Plus Jakarta Sans' }}
             >
               {viewTitles[currentView]}
