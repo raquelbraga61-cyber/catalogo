@@ -274,7 +274,7 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
   const handleAddToCart = (product: Product, quantity = 1) => {
     setCart((prevCart) => {
       const existingIndex = prevCart.findIndex(
-        (item) => item.product.id === product.id && item.product.saleType === product.saleType
+        (item) => item.product.id === product.id && item.product.saleType === product.saleType && item.product.variantLabel === product.variantLabel
       );
       const isKg = product.saleType === 'KG';
       const addedQuantity = isKg ? parseFloat(quantity.toFixed(2)) : (Math.round(quantity) || 1);
@@ -292,10 +292,10 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
     });
   };
 
-  const handleUpdateCartQuantity = (productId: string, delta: number, saleType?: 'UNI' | 'KG' | 'INTEIRO' | 'BANDA' | 'QUARTO') => {
+  const handleUpdateCartQuantity = (productId: string, delta: number, saleType?: 'UNI' | 'KG' | 'INTEIRO' | 'BANDA' | 'QUARTO', variantLabel?: string) => {
     setCart((prevCart) => {
       const existingIndex = prevCart.findIndex(
-        (item) => item.product.id === productId && (!saleType || item.product.saleType === saleType)
+        (item) => item.product.id === productId && (!saleType || item.product.saleType === saleType) && item.product.variantLabel === variantLabel
       );
       if (existingIndex === -1) return prevCart;
 
@@ -335,10 +335,10 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
     });
   };
 
-  const handleRemoveItem = (productId: string, saleType?: 'UNI' | 'KG' | 'INTEIRO' | 'BANDA' | 'QUARTO') => {
+  const handleRemoveItem = (productId: string, saleType?: 'UNI' | 'KG' | 'INTEIRO' | 'BANDA' | 'QUARTO', variantLabel?: string) => {
     setCart((prevCart) =>
       prevCart.filter(
-        (item) => !(item.product.id === productId && (!saleType || item.product.saleType === saleType))
+        (item) => !(item.product.id === productId && (!saleType || item.product.saleType === saleType) && item.product.variantLabel === variantLabel)
       )
     );
   };
