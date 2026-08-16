@@ -4,8 +4,8 @@ import { CartItem, CustomerInfo } from '../types';
 
 interface CartProps {
   cartItems: CartItem[];
-  onUpdateQuantity: (productId: string, delta: number, saleType?: 'UNI' | 'KG' | 'INTEIRO' | 'BANDA' | 'QUARTO') => void;
-  onRemoveItem: (productId: string, saleType?: 'UNI' | 'KG' | 'INTEIRO' | 'BANDA' | 'QUARTO') => void;
+  onUpdateQuantity: (productId: string, delta: number, saleType?: 'UNI' | 'KG' | 'INTEIRO' | 'BANDA' | 'QUARTO', variantLabel?: string) => void;
+  onRemoveItem: (productId: string, saleType?: 'UNI' | 'KG' | 'INTEIRO' | 'BANDA' | 'QUARTO', variantLabel?: string) => void;
   customerInfo: CustomerInfo;
   onUpdateCustomerInfo: (info: CustomerInfo) => void;
   onClearCart: () => void;
@@ -183,6 +183,11 @@ export default function Cart({
                     <h3 className="font-bold text-[#181d18] text-sm md:text-base truncate leading-tight">
                       {item.product.name}
                     </h3>
+                    {item.product.variantLabel && (
+                      <span className="inline-block text-[10px] font-bold text-[#176c33] bg-[#176c33]/10 rounded-full px-2 py-0.5 mt-0.5">
+                        {item.product.variantLabel}
+                      </span>
+                    )}
                     <p className="text-xs text-[#176c33] font-bold mt-0.5">
                       R$ {item.product.price.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       <span className="text-[10px] font-normal text-[#707a6e] ml-0.5">
@@ -194,7 +199,7 @@ export default function Cart({
                   {/* Qty controller and item subtotal */}
                   <div className="flex flex-col items-end gap-2 pr-1">
                     <button
-                      onClick={() => onRemoveItem(item.product.id, item.product.saleType)}
+                      onClick={() => onRemoveItem(item.product.id, item.product.saleType, item.product.variantLabel)}
                       className="text-[#99405c] hover:bg-red-50 p-1.5 rounded-full transition-colors"
                       title="Remover"
                     >
@@ -203,7 +208,7 @@ export default function Cart({
 
                     <div className="flex items-center bg-[#f1f5ed] rounded-full p-1 border border-[#bfc9bc]/20">
                       <button
-                        onClick={() => onUpdateQuantity(item.product.id, -1, item.product.saleType)}
+                        onClick={() => onUpdateQuantity(item.product.id, -1, item.product.saleType, item.product.variantLabel)}
                         className="w-7 h-7 flex items-center justify-center rounded-full bg-white hover:bg-[#ebefe7] text-[#176c33] transition-colors border border-[#bfc9bc]/15 shadow-sm"
                         title="Diminuir"
                       >
@@ -220,7 +225,7 @@ export default function Cart({
                          item.product.saleType === 'QUARTO' ? '1/4' : 'un'}
                       </span>
                       <button
-                        onClick={() => onUpdateQuantity(item.product.id, 1, item.product.saleType)}
+                        onClick={() => onUpdateQuantity(item.product.id, 1, item.product.saleType, item.product.variantLabel)}
                         className="w-7 h-7 flex items-center justify-center rounded-full bg-white hover:bg-[#ebefe7] text-[#176c33] transition-colors border border-[#bfc9bc]/15 shadow-sm"
                         title="Aumentar"
                       >
