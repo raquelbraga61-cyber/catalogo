@@ -421,7 +421,7 @@ export default function Catalog({
                             </div>
 
                             {currentUnit === 'KG' ? (
-                              <div className="grid grid-cols-4 gap-1 flex-1 ml-3">
+                              <div className="grid grid-cols-2 gap-1 flex-1 ml-3">
                                 {[0.5, 1, 1.5, 2].map((w) => (
                                   <button
                                     key={w}
@@ -431,7 +431,7 @@ export default function Catalog({
                                       saleType: currentUnit,
                                       price: displayPrice
                                     }, w)}
-                                    className="py-1.5 rounded-full text-[9px] font-extrabold bg-[#176c33]/10 hover:bg-[#176c33] hover:text-white text-[#176c33] transition-all cursor-pointer whitespace-nowrap"
+                                    className="px-1 py-1 rounded-full text-[9px] font-extrabold bg-[#176c33]/10 hover:bg-[#176c33] hover:text-white text-[#176c33] transition-all cursor-pointer whitespace-nowrap text-center"
                                   >
                                     {w < 1 ? `${w * 1000}G` : `${w.toString().replace('.', ',')}K`}
                                   </button>
@@ -445,7 +445,7 @@ export default function Catalog({
                                   price: displayPrice,
                                   variantLabel: currentVariant?.label
                                 })}
-                                className="w-9 h-9 rounded-full bg-[#176c33] hover:bg-[#115326] text-white flex items-center justify-center transition-all duration-300 active:scale-90 shadow-sm cursor-pointer shrink-0"
+                                className="w-8 h-8 rounded-full bg-[#176c33] hover:bg-[#115326] text-white flex items-center justify-center transition-all duration-300 active:scale-90 shadow-sm cursor-pointer shrink-0"
                                 aria-label="Adicionar ao carrinho"
                               >
                                 <Plus className="w-4 h-4" />
