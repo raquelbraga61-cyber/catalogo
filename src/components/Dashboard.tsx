@@ -1107,17 +1107,31 @@ export default function Dashboard({
                       {/* Product pricing */}
                       <td className="px-6 py-4">
                         <div className="flex flex-col gap-0.5">
-                          {product.allowedUnits !== 'UNI' && (
-                            <p className="text-xs font-bold text-[#176c33]">
-                              R$ {product.price.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                              <span className="text-[10px] font-normal text-[#707a6e] ml-0.5">/kg</span>
-                            </p>
-                          )}
-                          {product.allowedUnits !== 'KG' && (
-                            <p className="text-xs font-bold text-[#176c33]">
-                              R$ {(product.priceUnit !== undefined && product.priceUnit !== null ? product.priceUnit : (product.allowedUnits === 'UNI' ? product.price : Math.round(product.price * 0.2))).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                              <span className="text-[10px] font-normal text-[#707a6e] ml-0.5">/un</span>
-                            </p>
+                          {product.variants && product.variants.length > 0 ? (
+                            <>
+                              <p className="text-xs font-bold text-[#176c33]">
+                                R$ {Math.min(...product.variants.map(v => v.price)).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                <span className="text-[10px] font-normal text-[#707a6e] ml-0.5">a partir de</span>
+                              </p>
+                              <span className="inline-block w-fit text-[10px] font-bold text-[#176c33] bg-[#176c33]/10 rounded-full px-2 py-0.5">
+                                {product.variants.length} variações
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              {product.allowedUnits !== 'UNI' && (
+                                <p className="text-xs font-bold text-[#176c33]">
+                                  R$ {product.price.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  <span className="text-[10px] font-normal text-[#707a6e] ml-0.5">/kg</span>
+                                </p>
+                              )}
+                              {product.allowedUnits !== 'KG' && (
+                                <p className="text-xs font-bold text-[#176c33]">
+                                  R$ {(product.priceUnit !== undefined && product.priceUnit !== null ? product.priceUnit : (product.allowedUnits === 'UNI' ? product.price : Math.round(product.price * 0.2))).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  <span className="text-[10px] font-normal text-[#707a6e] ml-0.5">/un</span>
+                                </p>
+                              )}
+                            </>
                           )}
                         </div>
                       </td>
