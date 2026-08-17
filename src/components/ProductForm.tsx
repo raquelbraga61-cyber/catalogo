@@ -298,9 +298,11 @@ const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<strin
                     >
                       <span className="text-xs font-bold text-gray-400 mb-1">KG</span>
                       <span className="text-xs font-bold block">Apenas por Quilo</span>
-                      <span className="text-[10px] text-[#707a6e] mt-1 font-normal leading-tight">
-                        O cliente só poderá comprar este produto pesando em Quilos (KG).
-                      </span>
+                      {allowedUnits === 'KG' && (
+                        <span className="text-[10px] text-[#707a6e] mt-1 font-normal leading-tight">
+                          O cliente só poderá comprar este produto pesando em Quilos (KG).
+                        </span>
+                      )}
                     </button>
 
                     <button
@@ -317,9 +319,11 @@ const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<strin
                     >
                       <span className="text-xs font-bold text-gray-400 mb-1">UNI</span>
                       <span className="text-xs font-bold block">Apenas por Unidade</span>
-                      <span className="text-[10px] text-[#707a6e] mt-1 font-normal leading-tight">
-                        O cliente só poderá comprar este produto em quantidade unitária (UNI).
-                      </span>
+                      {allowedUnits === 'UNI' && (
+                        <span className="text-[10px] text-[#707a6e] mt-1 font-normal leading-tight">
+                          O cliente só poderá comprar este produto em quantidade unitária (UNI).
+                        </span>
+                      )}
                     </button>
 
                     <button
@@ -335,9 +339,11 @@ const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<strin
                     >
                       <span className="text-xs font-bold text-gray-400 mb-1">AMBOS</span>
                       <span className="text-xs font-bold block">Ambos (Quilo e Unidade)</span>
-                      <span className="text-[10px] text-[#707a6e] mt-1 font-normal leading-tight">
-                        O cliente escolhe livremente se quer comprar por Quilo ou por Unidades.
-                      </span>
+                      {allowedUnits === 'BOTH' && (
+                        <span className="text-[10px] text-[#707a6e] mt-1 font-normal leading-tight">
+                          O cliente escolhe livremente se quer comprar por Quilo ou por Unidades.
+                        </span>
+                      )}
                     </button>
 
                     <button
@@ -354,9 +360,11 @@ const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<strin
                     >
                       <span className="text-xs font-bold text-gray-400 mb-1">FRAÇÕES</span>
                       <span className="text-xs font-bold block">Fração (Inteiro, Banda, 1/4)</span>
-                      <span className="text-[10px] text-[#707a6e] mt-1 font-normal leading-tight">
-                        O cliente escolhe se quer levar o produto Inteiro, Banda ou 1/4.
-                      </span>
+                      {allowedUnits === 'FRAC' && (
+                        <span className="text-[10px] text-[#707a6e] mt-1 font-normal leading-tight">
+                          O cliente escolhe se quer levar o produto Inteiro, Banda ou 1/4.
+                        </span>
+                      )}
                     </button>
                   </div>
                 </div>
