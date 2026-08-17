@@ -543,9 +543,9 @@ const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<strin
                                 setVariants(updated);
                               }}
                               placeholder="Nome (ex: 500g)"
-                              className="flex-1 h-11 px-4 rounded-full bg-white border border-[#bfc9bc]/40 text-sm focus:ring-2 focus:ring-[#176c33] focus:outline-none"
+                              className="flex-1 min-w-0 h-11 px-4 rounded-full bg-white border border-[#bfc9bc]/40 text-sm focus:ring-2 focus:ring-[#176c33] focus:outline-none"
                             />
-                            <div className="relative w-32">
+                            <div className="relative w-28 shrink-0">
                               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold text-[#707a6e]">
                                 R$
                               </span>
@@ -560,7 +560,7 @@ const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<strin
                                   setVariants(updated);
                                 }}
                                 placeholder="0,00"
-                                className="w-full h-11 pl-9 pr-3 rounded-full bg-white border border-[#bfc9bc]/40 text-sm focus:ring-2 focus:ring-[#176c33] focus:outline-none"
+                                className="w-full h-11 pl-9 pr-2 rounded-full bg-white border border-[#bfc9bc]/40 text-sm focus:ring-2 focus:ring-[#176c33] focus:outline-none"
                               />
                             </div>
                             {variants.length > 2 && (
