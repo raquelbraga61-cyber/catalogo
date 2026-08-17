@@ -303,7 +303,7 @@ export default function Catalog({
                               {product.category}
                             </span>
                             <h3 
-                              className="font-bold text-[#181d18] text-sm md:text-base mt-0.5 line-clamp-1"
+                              className="font-bold text-[#181d18] text-sm md:text-base mt-0.5 line-clamp-2 leading-snug min-h-[2.5em]"
                               style={{ fontFamily: 'Plus Jakarta Sans' }}
                             >
                               {product.name}
@@ -445,10 +445,10 @@ export default function Catalog({
                                   price: displayPrice,
                                   variantLabel: currentVariant?.label
                                 })}
-                                className="w-10 h-10 rounded-full bg-[#176c33] hover:bg-[#115326] text-white flex items-center justify-center transition-all duration-300 active:scale-90 shadow-md shadow-[#176c33]/15 cursor-pointer shrink-0"
+                                className="w-9 h-9 rounded-full bg-[#176c33] hover:bg-[#115326] text-white flex items-center justify-center transition-all duration-300 active:scale-90 shadow-sm cursor-pointer shrink-0"
                                 aria-label="Adicionar ao carrinho"
                               >
-                                <Plus className="w-5 h-5" />
+                                <Plus className="w-4 h-4" />
                               </button>
                             )}
                           </div>
