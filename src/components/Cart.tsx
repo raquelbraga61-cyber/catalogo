@@ -163,50 +163,54 @@ export default function Cart({
               return (
                 <div
                   key={item.product.id}
-                  className="bg-white p-4 rounded-xl shadow-sm border border-[#bfc9bc]/15 flex items-center justify-between gap-4 transition-transform active:scale-[0.99]"
+                  className="bg-white p-4 rounded-xl shadow-sm border border-[#bfc9bc]/15 flex flex-col gap-3 transition-transform active:scale-[0.99]"
                 >
-                  {/* Thumbnail */}
-                  <div className="w-20 h-20 rounded-lg overflow-hidden bg-[#f1f5ed] flex-shrink-0 border border-gray-100">
-                    <img
-                      alt={item.product.name}
-                      className="w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
-                      src={item.product.imageUrl}
-                    />
+                  <div className="flex items-start gap-3">
+                    {/* Thumbnail */}
+                    <div className="w-16 h-16 rounded-lg overflow-hidden bg-[#f1f5ed] flex-shrink-0 border border-gray-100">
+                      <img
+                        alt={item.product.name}
+                        className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
+                        src={item.product.imageUrl}
+                      />
+                    </div>
+
+                    {/* Title info */}
+                    <div className="flex-1 min-w-0">
+                      <span className="block text-[9px] font-bold tracking-wider uppercase text-[#707a6e] truncate">
+                        {item.product.category}
+                      </span>
+                      <h3 className="font-bold text-[#181d18] text-sm leading-snug line-clamp-2">
+                        {item.product.name}
+                      </h3>
+                      {item.product.variantLabel && (
+                        <span className="inline-block text-[10px] font-bold text-[#176c33] bg-[#176c33]/10 rounded-full px-2 py-0.5 mt-1">
+                          {item.product.variantLabel}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Remove button */}
+                    <button
+                      onClick={() => onRemoveItem(item.product.id, item.product.saleType, item.product.variantLabel)}
+                      className="text-[#99405c] hover:bg-red-50 p-1.5 rounded-full transition-colors shrink-0"
+                      title="Remover"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
 
-                  {/* Title & Price info */}
-                  <div className="flex-grow min-w-0">
-                    <span className="text-[9px] font-bold tracking-wider uppercase text-[#707a6e]">
-                      {item.product.category}
-                    </span>
-                    <h3 className="font-bold text-[#181d18] text-sm md:text-base truncate leading-tight">
-                      {item.product.name}
-                    </h3>
-                    {item.product.variantLabel && (
-                      <span className="inline-block text-[10px] font-bold text-[#176c33] bg-[#176c33]/10 rounded-full px-2 py-0.5 mt-0.5">
-                        {item.product.variantLabel}
-                      </span>
-                    )}
-                    <p className="text-xs text-[#176c33] font-bold mt-0.5">
+                  {/* Price and quantity controller */}
+                  <div className="flex items-center justify-between gap-2 pl-1">
+                    <p className="text-sm text-[#176c33] font-bold whitespace-nowrap">
                       R$ {item.product.price.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       <span className="text-[10px] font-normal text-[#707a6e] ml-0.5">
                         /{item.product.saleType === 'QUARTO' ? '1/4' : item.product.saleType.toLowerCase()}
                       </span>
                     </p>
-                  </div>
 
-                  {/* Qty controller and item subtotal */}
-                  <div className="flex flex-col items-end gap-2 pr-1">
-                    <button
-                      onClick={() => onRemoveItem(item.product.id, item.product.saleType, item.product.variantLabel)}
-                      className="text-[#99405c] hover:bg-red-50 p-1.5 rounded-full transition-colors"
-                      title="Remover"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-
-                    <div className="flex items-center bg-[#f1f5ed] rounded-full p-1 border border-[#bfc9bc]/20">
+                    <div className="flex items-center bg-[#f1f5ed] rounded-full p-1 border border-[#bfc9bc]/20 shrink-0">
                       <button
                         onClick={() => onUpdateQuantity(item.product.id, -1, item.product.saleType, item.product.variantLabel)}
                         className="w-7 h-7 flex items-center justify-center rounded-full bg-white hover:bg-[#ebefe7] text-[#176c33] transition-colors border border-[#bfc9bc]/15 shadow-sm"
@@ -214,7 +218,7 @@ export default function Cart({
                       >
                         <Minus className="w-3.5 h-3.5" />
                       </button>
-                      <span className="w-12 text-center font-bold text-sm text-[#181d18]">
+                      <span className="w-10 text-center font-bold text-sm text-[#181d18]">
                         {item.product.saleType === 'KG' ? item.quantity : Math.round(item.quantity)}
                       </span>
                       <span className="text-[10px] text-[#707a6e] font-semibold uppercase pr-1">
