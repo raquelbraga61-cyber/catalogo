@@ -240,7 +240,7 @@ export default function Catalog({
                   </div>
 
                   {/* Grid for this specific category */}
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 items-start">
                     {categoryProducts.map((product) => {
                       const resolvedAllowedUnits = product.allowedUnits || 'BOTH';
                       let currentUnit: 'KG' | 'UNI' | 'INTEIRO' | 'BANDA' | 'QUARTO' = product.saleType;
@@ -278,10 +278,20 @@ export default function Catalog({
                         displayPrice = currentVariant.price;
                       }
 
+                      const rawSuffix = currentVariant
+                        ? currentVariant.label
+                        : currentUnit === 'QUARTO' ? '1/4'
+                        : currentUnit === 'INTEIRO' ? 'inteiro'
+                        : currentUnit === 'BANDA' ? 'banda'
+                        : currentUnit.toLowerCase();
+                      const priceSuffix = (displayPrice >= 100 || rawSuffix.length > 4)
+                        ? rawSuffix.slice(0, 3)
+                        : rawSuffix;
+
                       return (
                         <div
                           key={product.id}
-                          className="group bg-white rounded-xl p-4 shadow-sm border border-[#bfc9bc]/10 hover:shadow-md transition-all duration-300 relative flex flex-col justify-between h-full"
+                          className="group bg-white rounded-xl p-4 shadow-sm border border-[#bfc9bc]/10 hover:shadow-md transition-all duration-300 relative flex flex-col"
                         >
                           <div>
                             {/* Image and Love Toggle */}
@@ -318,9 +328,11 @@ export default function Catalog({
                               {product.name}
                             </h3>
                             
-                            <p className="text-xs text-[#707a6e] line-clamp-2 mt-1 mb-3 min-h-[2em]">
-                              {product.description || ''}
-                            </p>
+                            {product.description && (
+                              <p className="text-xs text-[#707a6e] line-clamp-2 mt-1 mb-3">
+                                {product.description}
+                              </p>
+                            )}
                             
                             {/* Sale Type Pills */}
                             <div className="flex gap-1.5 mb-4">
@@ -381,11 +393,9 @@ export default function Catalog({
                               </span>
                               <span className="text-[#176c33] font-extrabold text-base md:text-lg whitespace-nowrap">
                                 <span className="mr-0.5">R$</span>{displayPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                {!currentVariant && displayPrice < 100 && (
-                                  <span className="text-[10px] font-normal text-[#707a6e] ml-0.5">
-                                    /{currentUnit === 'QUARTO' ? '1/4' : currentUnit.toLowerCase()}
-                                  </span>
-                                )}
+                                <span className="text-[10px] font-normal text-[#707a6e] ml-0.5">
+                                  /{priceSuffix}
+                                </span>
                               </span>
                             </div>
 
