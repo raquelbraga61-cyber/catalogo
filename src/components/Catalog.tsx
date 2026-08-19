@@ -50,10 +50,18 @@ export default function Catalog({
     setCurrentSlide((prev) => (prev - 1 + dailyOffers.length) % dailyOffers.length);
   };
 
+  // Normalize text for search: lowercase and strip accents (e.g. "AÇÚCAR" matches "acucar")
+  const normalizeText = (text: string) =>
+    text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+
   // Filter products based on search term and selected category
   const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()));
+    const normalizedSearch = normalizeText(searchTerm);
+    const matchesSearch = normalizeText(product.name).includes(normalizedSearch) ||
+                          (product.description && normalizeText(product.description).includes(normalizedSearch));
     const matchesCategory = activeCategory === 'Tudo' || product.category === activeCategory;
     return matchesSearch && matchesCategory;
   });
@@ -378,11 +386,7 @@ export default function Catalog({
                                     1/4
                                   </button>
                                 </>
-                              ) : (
-                                <div className="flex-1 text-center py-1.5 rounded-full text-[10px] uppercase font-extrabold tracking-wide border bg-[#176c33]/15 text-[#176c33] border-[#176c33]/30 select-none">
-                                  Venda: {resolvedAllowedUnits === 'KG' ? 'Apenas por Quilo' : 'Apenas por Unidade'}
-                                </div>
-                             )}
+                              ) : null}
                             </div>
 
                             {/* Variant Selector (e.g. same product in 500g / 1kg) */}
