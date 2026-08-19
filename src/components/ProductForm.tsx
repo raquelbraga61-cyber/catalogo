@@ -79,7 +79,7 @@ export default function ProductForm({
     }
   }, [mode, initialProduct]);
 
-const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<string> => {
+const compressImage = (file: File, maxWidth = 500, quality = 0.55): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (event) => {

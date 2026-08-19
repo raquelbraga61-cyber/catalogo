@@ -5,6 +5,7 @@ import { Product, CategoryType, DailyOffer } from '../types';
 interface DashboardProps {
   products: Product[];
   onDeleteProduct: (id: string) => void;
+  onBulkUpdateImages: (updates: { id: string; imageUrl: string }[]) => Promise<void>;
   onEditProduct: (product: Product) => void;
   onToggleActive: (product: Product) => void;
   onAddProductTrigger: () => void;
@@ -31,6 +32,7 @@ const BACKGROUND_PRESETS = [
 export default function Dashboard({
   products,
   onDeleteProduct,
+  onBulkUpdateImages,
   onEditProduct,
   onToggleActive,
   onAddProductTrigger,
@@ -156,6 +158,69 @@ export default function Dashboard({
   const [activeOrderPeriod, setActiveOrderPeriod] = useState<string | null>(null);
   const [showMonthHistory, setShowMonthHistory] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [isOptimizingPhotos, setIsOptimizingPhotos] = useState(false);
+  const [optimizeProgress, setOptimizeProgress] = useState({ done: 0, total: 0 });
+  const [optimizeResult, setOptimizeResult] = useState<string | null>(null);
+
+  const recompressDataUrl = (dataUrl: string, maxWidth = 500, quality = 0.55): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new window.Image();
+      img.onload = () => {
+        const scale = Math.min(1, maxWidth / img.width);
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = reject;
+      img.src = dataUrl;
+    });
+  };
+
+  const handleOptimizeAllPhotos = async () => {
+    // Only touch products whose photo is stored as base64 (data:image...) and is on the larger side
+    const targets = products.filter(
+      (p) => p.imageUrl && p.imageUrl.startsWith('data:image') && p.imageUrl.length > 60000
+    );
+
+    if (targets.length === 0) {
+      setOptimizeResult('Nenhuma foto grande encontrada — o catálogo já está otimizado!');
+      return;
+    }
+
+    setIsOptimizingPhotos(true);
+    setOptimizeResult(null);
+    setOptimizeProgress({ done: 0, total: targets.length });
+
+    const updates: { id: string; imageUrl: string }[] = [];
+    let savedBytes = 0;
+
+    for (let i = 0; i < targets.length; i++) {
+      const product = targets[i];
+      try {
+        const optimized = await recompressDataUrl(product.imageUrl);
+        if (optimized.length < product.imageUrl.length) {
+          savedBytes += product.imageUrl.length - optimized.length;
+          updates.push({ id: product.id, imageUrl: optimized });
+        }
+      } catch (err) {
+        console.error('Falha ao otimizar imagem de', product.name, err);
+      }
+      setOptimizeProgress({ done: i + 1, total: targets.length });
+    }
+
+    if (updates.length > 0) {
+      await onBulkUpdateImages(updates);
+    }
+
+    setIsOptimizingPhotos(false);
+    setOptimizeResult(
+      `Pronto! ${updates.length} foto(s) otimizada(s), economizando cerca de ${(savedBytes / 1024).toFixed(0)} KB no total.`
+    );
+  };
+
 
   // Statistics
   const totalStock = products.reduce((acc, p) => acc + (p.stock || 0), 0);
@@ -508,6 +573,37 @@ export default function Dashboard({
             </button>
           </div>
         </div>
+      </section>
+
+      {/* Photo Optimization Tool */}
+      <section className="bg-white rounded-2xl border border-[#bfc9bc]/30 shadow-sm p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <h3 className="font-bold text-lg text-[#181d18]" style={{ fontFamily: 'Plus Jakarta Sans' }}>
+              Otimizar Fotos do Catálogo
+            </h3>
+            <p className="text-xs text-[#707a6e] max-w-2xl">
+              Deixa as fotos já cadastradas mais leves, sem trocar as imagens — isso ajuda o site a carregar mais rápido no celular.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleOptimizeAllPhotos}
+            disabled={isOptimizingPhotos}
+            className="flex-shrink-0 px-6 py-2.5 rounded-full text-xs font-bold cursor-pointer shadow-sm transition-all active:scale-95 border bg-[#176c33] border-[#176c33] text-white hover:bg-[#115326] disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {isOptimizingPhotos
+              ? `Otimizando ${optimizeProgress.done}/${optimizeProgress.total}...`
+              : 'Otimizar Fotos Agora'}
+          </button>
+        </div>
+
+        {optimizeResult && (
+          <div className="bg-[#e8f5e9] text-[#1b5e20] px-4 py-2.5 rounded-xl border border-[#c8e6c9] text-xs font-bold">
+            {optimizeResult}
+          </div>
+        )}
       </section>
 
       {/* Managing Promotion Banner Block */}

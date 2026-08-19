@@ -403,6 +403,19 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
     }
   };
 
+  const handleBulkUpdateImages = async (updates: { id: string; imageUrl: string }[]) => {
+    // Firestore batches support up to 500 operations; chunk just in case the catalog grows a lot
+    const chunkSize = 400;
+    for (let i = 0; i < updates.length; i += chunkSize) {
+      const chunk = updates.slice(i, i + chunkSize);
+      const batch = writeBatch(db);
+      chunk.forEach(({ id, imageUrl }) => {
+        batch.update(doc(db, 'products', id), { imageUrl });
+      });
+      await batch.commit();
+    }
+  };
+
   const handleAddProductTrigger = () => {
     setSelectedEditingProduct(null);
     setFormMode('create');
@@ -469,6 +482,7 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
             onEditProduct={handleEditProductTrigger}
             onDeleteProduct={handleDeleteProduct}
             onToggleActive={handleToggleActive}
+            onBulkUpdateImages={handleBulkUpdateImages}
             onNavigateToCart={() => handleNavigate('cart')}
             dailyOffers={dailyOffers}
             onUpdateDailyOffers={setDailyOffers}
