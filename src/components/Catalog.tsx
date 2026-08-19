@@ -383,11 +383,13 @@ export default function Catalog({
                               </span>
                               <span className="text-[#176c33] font-extrabold text-base md:text-lg whitespace-nowrap">
                                 <span className="mr-0.5">R$</span>{displayPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                <span className="text-[10px] font-normal text-[#707a6e] ml-0.5">
-                                  {currentVariant
-                                    ? `/ ${currentVariant.label.length > 8 ? currentVariant.label.slice(0, 8).trim() + '…' : currentVariant.label}`
-                                    : `/${currentUnit === 'QUARTO' ? '1/4' : currentUnit.toLowerCase()}`}
-                                </span>
+                                {displayPrice < 100 && (
+                                  <span className="text-[10px] font-normal text-[#707a6e] ml-0.5">
+                                    {currentVariant
+                                      ? `/ ${currentVariant.label.length > 8 ? currentVariant.label.slice(0, 8).trim() + '…' : currentVariant.label}`
+                                      : `/${currentUnit === 'QUARTO' ? '1/4' : currentUnit.toLowerCase()}`}
+                                  </span>
+                                )}
                               </span>
                             </div>
 
