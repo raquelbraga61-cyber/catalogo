@@ -387,13 +387,13 @@ export default function Catalog({
 
                             {/* Variant Selector (e.g. same product in 500g / 1kg) */}
                             {hasVariants && (
-                              <div className="flex flex-wrap gap-1.5 mb-4">
+                              <div className="flex flex-nowrap gap-1.5 mb-4 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                                 {product.variants!.map((variant, vIndex) => (
                                   <button
                                     key={variant.label + vIndex}
                                     type="button"
                                     onClick={() => setSelectedVariantIndex(prev => ({ ...prev, [product.id]: vIndex }))}
-                                    className={`px-3 py-1.5 rounded-full text-[10px] uppercase font-bold tracking-wide border transition-all cursor-pointer ${
+                                    className={`shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full text-[10px] uppercase font-bold tracking-wide border transition-all cursor-pointer ${
                                       currentVariantIndex === vIndex
                                         ? 'bg-[#176c33] text-white border-[#176c33] font-extrabold shadow-sm'
                                         : 'bg-white text-[#707a6e] border-[#bfc9bc]/30 hover:bg-[#f1f5ed]'
