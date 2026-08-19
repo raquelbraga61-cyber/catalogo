@@ -407,15 +407,17 @@ export default function Catalog({
                           </div>
 
                           {/* Price and Add button */}
-                          <div className="flex items-center justify-between pt-1">
-                            <div className="flex flex-col">
+                          <div className="flex items-center justify-between gap-2 pt-1">
+                            <div className="flex flex-col min-w-0 flex-1">
                               <span className="text-[10px] text-[#707a6e] font-semibold leading-none flex items-center gap-0.5 mb-0.5">
                                 Preço {!isOriginal && product.priceUnit === undefined && <span className="text-[#a5521b] text-[8px] font-bold">(Est.)</span>}
                               </span>
-                              <span className="text-[#176c33] font-extrabold text-base md:text-lg whitespace-nowrap">
+                              <span className="text-[#176c33] font-extrabold text-base md:text-lg truncate block">
                                 <span className="mr-0.5">R$</span>{displayPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 <span className="text-[10px] font-normal text-[#707a6e] ml-0.5">
-                                  {currentVariant ? `/ ${currentVariant.label}` : `/${currentUnit === 'QUARTO' ? '1/4' : currentUnit.toLowerCase()}`}
+                                  {currentVariant
+                                    ? `/ ${currentVariant.label.length > 8 ? currentVariant.label.slice(0, 8).trim() + '…' : currentVariant.label}`
+                                    : `/${currentUnit === 'QUARTO' ? '1/4' : currentUnit.toLowerCase()}`}
                                 </span>
                               </span>
                             </div>
