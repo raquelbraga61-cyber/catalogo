@@ -180,14 +180,8 @@ export default function Catalog({
 
       {/* Own Production Highlight Carousel */}
       {products.some((p) => p.isOwnProduction && p.isActive !== false) && (
-        <section className="bg-[#176c33] rounded-2xl p-5 shadow-md">
-          <div className="mb-4">
-            <h2 className="text-white font-black text-lg leading-tight" style={{ fontFamily: 'Plus Jakarta Sans' }}>
-              Produções Próprias
-            </h2>
-          </div>
-
-          <div className="flex gap-4 overflow-x-auto pb-1 -mx-5 px-5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <section className="bg-[#176c33] rounded-xl p-3 shadow-md">
+          <div className="flex gap-4 overflow-x-auto pb-1 -mx-3 px-3 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {products
               .filter((p) => p.isOwnProduction && p.isActive !== false)
               .map((product) => {
