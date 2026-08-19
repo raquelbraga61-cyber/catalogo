@@ -27,6 +27,7 @@ export default function ProductForm({
   const [weightBanda, setWeightBanda] = useState('');
   const [weightQuarto, setWeightQuarto] = useState('');
   const [hasVariants, setHasVariants] = useState(false);
+  const [isOwnProduction, setIsOwnProduction] = useState(false);
   const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
@@ -57,6 +58,7 @@ export default function ProductForm({
       setWeightQuarto(initialProduct.weightQuarto ? initialProduct.weightQuarto.toString() : '');
       setHasVariants(!!(initialProduct.variants && initialProduct.variants.length > 0));
       setVariants(initialProduct.variants && initialProduct.variants.length > 0 ? initialProduct.variants : []);
+      setIsOwnProduction(!!initialProduct.isOwnProduction);
       setDescription(initialProduct.description || '');
       setImageUrl(initialProduct.imageUrl || '');
       setStock((initialProduct.stock || 100).toString());
@@ -73,6 +75,7 @@ export default function ProductForm({
       setWeightQuarto('');
       setHasVariants(false);
       setVariants([]);
+      setIsOwnProduction(false);
       setDescription('');
       setImageUrl('');
       setStock('100');
@@ -164,7 +167,8 @@ const compressImage = (file: File, maxWidth = 500, quality = 0.55): Promise<stri
       description: description.trim(),
       imageUrl: finalImage,
       stock: parseInt(stock) || 120,
-      isFavorite: initialProduct?.isFavorite ?? false
+      isFavorite: initialProduct?.isFavorite ?? false,
+      isOwnProduction
     };
 
     if (initialProduct?.id) {
@@ -570,6 +574,21 @@ const compressImage = (file: File, maxWidth = 500, quality = 0.55): Promise<stri
                   placeholder="Descreva as características do produto, dicas culinárias, origem sustentável ou benefícios nutricionais..."
                   className="w-full p-4 rounded-xl bg-[#f1f5ed] border-none focus:ring-2 focus:ring-[#176c33] focus:bg-white text-sm transition-all focus:outline-none resize-none"
                 />
+              </div>
+
+              {/* Own production flag */}
+              <div className="bg-[#fff6e8] border border-[#f0c987] rounded-2xl p-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isOwnProduction}
+                    onChange={(e) => setIsOwnProduction(e.target.checked)}
+                    className="w-4 h-4 accent-[#a5521b]"
+                  />
+                  <span className="text-xs font-bold text-[#7a4413] uppercase">
+                    Produção Própria (aparece em destaque no carrossel do catálogo)
+                  </span>
+                </label>
               </div>
 
             </div>

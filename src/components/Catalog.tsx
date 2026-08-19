@@ -178,6 +178,68 @@ export default function Catalog({
         </section>
       )}
 
+      {/* Own Production Highlight Carousel */}
+      {products.some((p) => p.isOwnProduction && p.isActive !== false) && (
+        <section className="bg-gradient-to-r from-[#a5521b] to-[#c96f2b] rounded-2xl p-5 shadow-md">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-2xl">🌟</span>
+            <div>
+              <h2 className="text-white font-black text-lg leading-tight" style={{ fontFamily: 'Plus Jakarta Sans' }}>
+                Produção Própria
+              </h2>
+              <p className="text-white/80 text-xs font-medium">
+                Feito com carinho por nós, direto pra sua mesa
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-4 overflow-x-auto pb-1 -mx-5 px-5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            {products
+              .filter((p) => p.isOwnProduction && p.isActive !== false)
+              .map((product) => {
+                const ownPrice = product.variants && product.variants.length > 0
+                  ? product.variants[0].price
+                  : (product.priceUnit ?? product.price);
+                return (
+                  <div
+                    key={product.id}
+                    className="shrink-0 w-36 bg-white rounded-xl p-3 shadow-sm flex flex-col"
+                  >
+                    <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-[#f1f5ed] mb-2">
+                      <img
+                        alt={product.name}
+                        src={product.imageUrl}
+                        className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      <span className="absolute top-1 left-1 bg-[#a5521b] text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full">
+                        NOSSO
+                      </span>
+                    </div>
+                    <h3 className="text-xs font-bold text-[#181d18] line-clamp-2 leading-snug mb-1">
+                      {product.name}
+                    </h3>
+                    <div className="flex items-center justify-between mt-auto pt-1">
+                      <span className="text-[#a5521b] font-extrabold text-xs whitespace-nowrap">
+                        R$ {ownPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                      <button
+                        onClick={() => onAddToCart({ ...product, price: ownPrice })}
+                        className="w-6 h-6 rounded-full bg-[#a5521b] hover:bg-[#7a4413] text-white flex items-center justify-center transition-all active:scale-90 cursor-pointer shrink-0"
+                        aria-label="Adicionar ao carrinho"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </section>
+      )}
+
       {/* Category Scroll Filter */}
       <section className="overflow-x-auto py-2 -mx-5 px-5 scrollbar-thin">
         <div className="flex gap-3 min-w-max">
