@@ -180,17 +180,11 @@ export default function Catalog({
 
       {/* Own Production Highlight Carousel */}
       {products.some((p) => p.isOwnProduction && p.isActive !== false) && (
-        <section className="bg-gradient-to-r from-[#a5521b] to-[#c96f2b] rounded-2xl p-5 shadow-md">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-2xl">🌟</span>
-            <div>
-              <h2 className="text-white font-black text-lg leading-tight" style={{ fontFamily: 'Plus Jakarta Sans' }}>
-                Produção Própria
-              </h2>
-              <p className="text-white/80 text-xs font-medium">
-                Feito com carinho por nós, direto pra sua mesa
-              </p>
-            </div>
+        <section className="bg-[#176c33] rounded-2xl p-5 shadow-md">
+          <div className="mb-4">
+            <h2 className="text-white font-black text-lg leading-tight" style={{ fontFamily: 'Plus Jakarta Sans' }}>
+              Produções Próprias
+            </h2>
           </div>
 
           <div className="flex gap-4 overflow-x-auto pb-1 -mx-5 px-5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
@@ -214,20 +208,17 @@ export default function Catalog({
                         loading="lazy"
                         decoding="async"
                       />
-                      <span className="absolute top-1 left-1 bg-[#a5521b] text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full">
-                        NOSSO
-                      </span>
                     </div>
                     <h3 className="text-xs font-bold text-[#181d18] line-clamp-2 leading-snug mb-1">
                       {product.name}
                     </h3>
                     <div className="flex items-center justify-between mt-auto pt-1">
-                      <span className="text-[#a5521b] font-extrabold text-xs whitespace-nowrap">
+                      <span className="text-[#176c33] font-extrabold text-xs whitespace-nowrap">
                         R$ {ownPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </span>
                       <button
                         onClick={() => onAddToCart({ ...product, price: ownPrice })}
-                        className="w-6 h-6 rounded-full bg-[#a5521b] hover:bg-[#7a4413] text-white flex items-center justify-center transition-all active:scale-90 cursor-pointer shrink-0"
+                        className="w-6 h-6 rounded-full bg-[#176c33] hover:bg-[#115326] text-white flex items-center justify-center transition-all active:scale-90 cursor-pointer shrink-0"
                         aria-label="Adicionar ao carrinho"
                       >
                         <Plus className="w-3.5 h-3.5" />

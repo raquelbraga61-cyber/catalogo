@@ -577,15 +577,15 @@ const compressImage = (file: File, maxWidth = 500, quality = 0.55): Promise<stri
               </div>
 
               {/* Own production flag */}
-              <div className="bg-[#fff6e8] border border-[#f0c987] rounded-2xl p-4">
+              <div className="bg-[#f7fbf2] border border-[#bfc9bc]/30 rounded-2xl p-4">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={isOwnProduction}
                     onChange={(e) => setIsOwnProduction(e.target.checked)}
-                    className="w-4 h-4 accent-[#a5521b]"
+                    className="w-4 h-4 accent-[#176c33]"
                   />
-                  <span className="text-xs font-bold text-[#7a4413] uppercase">
+                  <span className="text-xs font-bold text-[#40493f] uppercase">
                     Produção Própria (aparece em destaque no carrossel do catálogo)
                   </span>
                 </label>
