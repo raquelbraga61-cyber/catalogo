@@ -391,7 +391,7 @@ export default function Catalog({
                               <span className="text-[10px] text-[#707a6e] font-semibold leading-none flex items-center gap-0.5 mb-0.5">
                                 Preço {!isOriginal && product.priceUnit === undefined && <span className="text-[#a5521b] text-[8px] font-bold">(Est.)</span>}
                               </span>
-                              <span className="text-[#176c33] font-extrabold text-base md:text-lg whitespace-nowrap">
+                              <span className="text-[#176c33] font-extrabold text-sm md:text-base whitespace-nowrap">
                                 <span className="mr-0.5">R$</span>{displayPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 <span className="text-[10px] font-normal text-[#707a6e] ml-0.5">
                                   /{priceSuffix}
