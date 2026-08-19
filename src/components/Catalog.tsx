@@ -247,8 +247,6 @@ export default function Catalog({
                         currentUnit = 'KG';
                       } else if (resolvedAllowedUnits === 'UNI') {
                         currentUnit = 'UNI';
-                      } else if (resolvedAllowedUnits === 'FRAC') {
-                        currentUnit = (selectedUnits[product.id] as 'INTEIRO' | 'BANDA' | 'QUARTO') || 'INTEIRO';
                       } else {
                         currentUnit = (selectedUnits[product.id] as 'KG' | 'UNI') || product.saleType;
                       }
@@ -348,42 +346,6 @@ export default function Catalog({
                                     }`}
                                   >
                                     Quilo
-                                  </button>
-                                </>
-                              ) : resolvedAllowedUnits === 'FRAC' ? (
-                                <>
-                                  <button
-                                    type="button"
-                                    onClick={() => setSelectedUnits(prev => ({ ...prev, [product.id]: 'INTEIRO' }))}
-                                    className={`flex-1 text-center py-1.5 rounded-full text-[10px] uppercase font-bold tracking-wide border transition-all cursor-pointer ${
-                                      currentUnit === 'INTEIRO'
-                                        ? 'bg-[#176c33] text-white border-[#176c33] font-extrabold shadow-sm'
-                                        : 'bg-white text-[#707a6e] border-[#bfc9bc]/30 hover:bg-[#f1f5ed]'
-                                    }`}
-                                  >
-                                    Inteiro
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => setSelectedUnits(prev => ({ ...prev, [product.id]: 'BANDA' }))}
-                                    className={`flex-1 text-center py-1.5 rounded-full text-[10px] uppercase font-bold tracking-wide border transition-all cursor-pointer ${
-                                      currentUnit === 'BANDA'
-                                        ? 'bg-[#176c33] text-white border-[#176c33] font-extrabold shadow-sm'
-                                        : 'bg-white text-[#707a6e] border-[#bfc9bc]/30 hover:bg-[#f1f5ed]'
-                                    }`}
-                                  >
-                                    Banda
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => setSelectedUnits(prev => ({ ...prev, [product.id]: 'QUARTO' }))}
-                                    className={`flex-1 text-center py-1.5 rounded-full text-[10px] uppercase font-bold tracking-wide border transition-all cursor-pointer ${
-                                      currentUnit === 'QUARTO'
-                                        ? 'bg-[#176c33] text-white border-[#176c33] font-extrabold shadow-sm'
-                                        : 'bg-white text-[#707a6e] border-[#bfc9bc]/30 hover:bg-[#f1f5ed]'
-                                    }`}
-                                  >
-                                    1/4
                                   </button>
                                 </>
                               ) : null}

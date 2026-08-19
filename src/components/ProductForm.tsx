@@ -122,23 +122,10 @@ const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<strin
     }
 
     let priceNum = 0;
-    if (allowedUnits === 'BOTH' || allowedUnits === 'KG' || allowedUnits === 'FRAC') {
+    if (allowedUnits === 'BOTH' || allowedUnits === 'KG') {
       priceNum = parseFloat(price);
       if (isNaN(priceNum) || priceNum <= 0) {
         alert('Por favor, informe um Preço por Quilo (KG) válido e maior que R$ 0,00');
-        return;
-      }
-    }
-
-    let weightInteiroNum = 0;
-    let weightBandaNum = 0;
-    let weightQuartoNum = 0;
-    if (allowedUnits === 'FRAC') {
-      weightInteiroNum = parseFloat(weightInteiro);
-      weightBandaNum = parseFloat(weightBanda);
-      weightQuartoNum = parseFloat(weightQuarto);
-      if (isNaN(weightInteiroNum) || weightInteiroNum <= 0 || isNaN(weightBandaNum) || weightBandaNum <= 0 || isNaN(weightQuartoNum) || weightQuartoNum <= 0) {
-        alert('Por favor, informe o peso estimado (em kg) do Inteiro, da Banda e do Quarto, todos maiores que 0.');
         return;
       }
     }
@@ -153,12 +140,12 @@ const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<strin
     }
 
     let cleanVariants: ProductVariant[] = [];
-    if (allowedUnits === 'UNI' && hasVariants) {
+    if ((allowedUnits === 'UNI' && hasVariants) || allowedUnits === 'FRAC') {
       cleanVariants = variants
         .map((v) => ({ label: v.label.trim(), price: v.price }))
         .filter((v) => v.label && v.price > 0);
       if (cleanVariants.length < 2) {
-        alert('Adicione pelo menos 2 variações (ex: 500g e 1kg), cada uma com nome e preço válidos.');
+        alert('Adicione pelo menos 2 opções (ex: Inteiro e Banda), cada uma com nome e preço válidos.');
         return;
       }
     }
@@ -171,7 +158,9 @@ const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<strin
       category,
       saleType: allowedUnits === 'FRAC' ? 'INTEIRO' : saleType,
       allowedUnits,
-      price: allowedUnits === 'UNI' ? (hasVariants ? cleanVariants[0].price : priceUnitNum) : priceNum,
+      price: (allowedUnits === 'UNI' && hasVariants) || allowedUnits === 'FRAC'
+        ? cleanVariants[0].price
+        : (allowedUnits === 'UNI' ? priceUnitNum : priceNum),
       description: description.trim(),
       imageUrl: finalImage,
       stock: parseInt(stock) || 120,
@@ -186,13 +175,7 @@ const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<strin
       productData.priceUnit = priceUnitNum;
     }
 
-    if (allowedUnits === 'FRAC') {
-      productData.weightInteiro = weightInteiroNum;
-      productData.weightBanda = weightBandaNum;
-      productData.weightQuarto = weightQuartoNum;
-    }
-
-    if (allowedUnits === 'UNI' && hasVariants) {
+    if ((allowedUnits === 'UNI' && hasVariants) || allowedUnits === 'FRAC') {
       productData.variants = cleanVariants;
     }
 
@@ -351,6 +334,14 @@ const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<strin
                       onClick={() => {
                         setAllowedUnits('FRAC');
                         setSaleType('INTEIRO');
+                        setHasVariants(true);
+                        if (variants.length === 0) {
+                          setVariants([
+                            { label: 'Inteiro', price: 0 },
+                            { label: 'Banda', price: 0 },
+                            { label: '1/4', price: 0 }
+                          ]);
+                        }
                       }}
                       className={`flex flex-col items-center justify-center p-3.5 rounded-2xl border text-center transition-all cursor-pointer ${
                         allowedUnits === 'FRAC'
@@ -411,8 +402,8 @@ const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<strin
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Price per KG - Show if BOTH or KG or FRAC */}
-                {(allowedUnits === 'BOTH' || allowedUnits === 'KG' || allowedUnits === 'FRAC') && (
+                {/* Price per KG - Show if BOTH or KG */}
+                {(allowedUnits === 'BOTH' || allowedUnits === 'KG') && (
                   <div className="space-y-1.5 pb-1">
                     <label htmlFor="price" className="block text-xs font-bold text-[#40493f] px-1 uppercase">
                       Preço por Quilo (R$/KG)
@@ -424,7 +415,7 @@ const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<strin
                       <input
                         type="number"
                         id="price"
-                        required={allowedUnits === 'BOTH' || allowedUnits === 'KG' || allowedUnits === 'FRAC'}
+                        required={allowedUnits === 'BOTH' || allowedUnits === 'KG'}
                         step="0.01"
                         min="0.01"
                         value={price}
@@ -436,60 +427,7 @@ const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<strin
                   </div>
                 )}
 
-                {/* Estimated weights per cut - Show only if FRAC */}
-                {allowedUnits === 'FRAC' && (
-                  <>
-                    <div className="space-y-1.5 pb-1">
-                      <label htmlFor="weightInteiro" className="block text-xs font-bold text-[#40493f] px-1 uppercase">
-                        Peso Estimado - Inteiro (KG)
-                      </label>
-                      <input
-                        type="number"
-                        id="weightInteiro"
-                        required
-                        step="0.01"
-                        min="0.01"
-                        value={weightInteiro}
-                        onChange={(e) => setWeightInteiro(e.target.value)}
-                        placeholder="Ex: 5"
-                        className="w-full h-12 px-5 rounded-full bg-[#f1f5ed] border-none focus:ring-2 focus:ring-[#176c33] focus:bg-white text-sm transition-all focus:outline-none"
-                      />
-                    </div>
-                    <div className="space-y-1.5 pb-1">
-                      <label htmlFor="weightBanda" className="block text-xs font-bold text-[#40493f] px-1 uppercase">
-                        Peso Estimado - Banda (KG)
-                      </label>
-                      <input
-                        type="number"
-                        id="weightBanda"
-                        required
-                        step="0.01"
-                        min="0.01"
-                        value={weightBanda}
-                        onChange={(e) => setWeightBanda(e.target.value)}
-                        placeholder="Ex: 2.5"
-                        className="w-full h-12 px-5 rounded-full bg-[#f1f5ed] border-none focus:ring-2 focus:ring-[#176c33] focus:bg-white text-sm transition-all focus:outline-none"
-                      />
-                    </div>
-                    <div className="space-y-1.5 pb-1">
-                      <label htmlFor="weightQuarto" className="block text-xs font-bold text-[#40493f] px-1 uppercase">
-                        Peso Estimado - Quarto (KG)
-                      </label>
-                      <input
-                        type="number"
-                        id="weightQuarto"
-                        required
-                        step="0.01"
-                        min="0.01"
-                        value={weightQuarto}
-                        onChange={(e) => setWeightQuarto(e.target.value)}
-                        placeholder="Ex: 1.25"
-                        className="w-full h-12 px-5 rounded-full bg-[#f1f5ed] border-none focus:ring-2 focus:ring-[#176c33] focus:bg-white text-sm transition-all focus:outline-none"
-                      />
-                    </div>
-                  </>
-                )}
-
+                {/* Price per Unit - Show if BOTH or UNI (and no variants active) */}
                 {/* Price per Unit - Show if BOTH or UNI (and no variants active) */}
                 {(allowedUnits === 'BOTH' || allowedUnits === 'UNI') && !(allowedUnits === 'UNI' && hasVariants) && (
                   <div className="space-y-1.5 pb-1">
@@ -516,29 +454,36 @@ const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<strin
                 )}
 
                 {/* Product Variants (e.g. same butter in 500g and 1kg, each with its own price) */}
-                {allowedUnits === 'UNI' && (
+                {(allowedUnits === 'UNI' || allowedUnits === 'FRAC') && (
                   <div className="space-y-2 pb-1 col-span-1 md:col-span-2 lg:col-span-3 bg-[#f7fbf2] border border-[#bfc9bc]/30 rounded-2xl p-4">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={hasVariants}
-                        onChange={(e) => {
-                          setHasVariants(e.target.checked);
-                          if (e.target.checked && variants.length === 0) {
-                            setVariants([{ label: '', price: 0 }, { label: '', price: 0 }]);
-                          }
-                        }}
-                        className="w-4 h-4 accent-[#176c33]"
-                      />
-                      <span className="text-xs font-bold text-[#40493f] uppercase">
-                        Este produto tem variações (ex: tamanhos diferentes)?
-                      </span>
-                    </label>
+                    {allowedUnits === 'UNI' && (
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={hasVariants}
+                          onChange={(e) => {
+                            setHasVariants(e.target.checked);
+                            if (e.target.checked && variants.length === 0) {
+                              setVariants([{ label: '', price: 0 }, { label: '', price: 0 }]);
+                            }
+                          }}
+                          className="w-4 h-4 accent-[#176c33]"
+                        />
+                        <span className="text-xs font-bold text-[#40493f] uppercase">
+                          Este produto tem variações (ex: tamanhos diferentes)?
+                        </span>
+                      </label>
+                    )}
 
-                    {hasVariants && (
+                    {allowedUnits === 'FRAC' && (
+                      <span className="text-xs font-bold text-[#40493f] uppercase block">
+                        Opções de venda (ex: Inteiro, Banda, 1/4) — cada uma com seu preço
+                      </span>
+                    )}
+
+                    {(hasVariants || allowedUnits === 'FRAC') && (
                       <div className="space-y-2 pt-2">
-                        <p className="text-[11px] text-[#707a6e]">
-                          Cada variação tem seu próprio preço. Ex: "500g" por R$ 12,00 e "1kg" por R$ 22,00.
+                        <p className="text-[11px] text-[#707a6e]">                          Cada variação tem seu próprio preço. Ex: "500g" por R$ 12,00 e "1kg" por R$ 22,00.
                         </p>
                         {variants.map((variant, index) => (
                           <div key={index} className="flex items-center gap-2">
