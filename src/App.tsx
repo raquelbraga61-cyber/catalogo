@@ -36,6 +36,21 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
     return [];
   });
 
+  const [favoriteIds, setFavoriteIds] = useState<string[]>(() => {
+    const savedFavorites = localStorage.getItem('sacolao_favorite_ids');
+    if (savedFavorites) {
+      try {
+        const parsed = JSON.parse(savedFavorites);
+        if (Array.isArray(parsed)) {
+          return parsed;
+        }
+      } catch (e) {
+        console.error('Erro ao restaurar favoritos:', e);
+      }
+    }
+    return [];
+  });
+
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>(() => {
     const savedInfo = localStorage.getItem('sacolao_customer_info');
     if (savedInfo) {
@@ -267,6 +282,10 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
   }, [cart]);
 
   useEffect(() => {
+    localStorage.setItem('sacolao_favorite_ids', JSON.stringify(favoriteIds));
+  }, [favoriteIds]);
+
+  useEffect(() => {
     localStorage.setItem('sacolao_customer_info', JSON.stringify(customerInfo));
   }, [customerInfo]);
 
@@ -349,17 +368,16 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
 
   // 5. Product Catalog & Inventory Handlers
   const handleToggleFavorite = (id: string) => {
-    setProducts((prevProducts) => {
-      const updated = prevProducts.map((p) => {
-        if (p.id === id) {
-          const nextVal = !p.isFavorite;
-          return { ...p, isFavorite: nextVal };
-        }
-        return p;
-      });
-      return updated;
-    });
+    setFavoriteIds((prev) =>
+      prev.includes(id) ? prev.filter((favId) => favId !== id) : [...prev, id]
+    );
   };
+
+  // Products with the per-browser favorite state merged in, for customer-facing views
+  const productsWithFavorites = products.map((p) => ({
+    ...p,
+    isFavorite: favoriteIds.includes(p.id)
+  }));
 
   const handleSaveProduct = (productData: Omit<Product, 'id'> & { id?: string }) => {
     if (productData.id) {
@@ -439,7 +457,7 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
       case 'catalog':
         return (
           <Catalog
-            products={products}
+            products={productsWithFavorites}
             searchTerm={searchTerm}
             cartItems={cart}
             onAddToCart={handleAddToCart}
@@ -518,7 +536,7 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
       case 'favorites':
         return (
           <Favorites
-            products={products}
+            products={productsWithFavorites}
             onToggleFavorite={handleToggleFavorite}
             onAddToCart={handleAddToCart}
             onNavigateToCatalog={() => handleNavigate('catalog')}
@@ -596,7 +614,7 @@ if (!isProductsReady) {
         currentView={currentView}
         onNavigate={handleNavigate}
         cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
-        favoritesCount={products.filter((p) => p.isFavorite).length}
+        favoritesCount={favoriteIds.length}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         isAdmin={isAdmin}
