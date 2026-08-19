@@ -59,6 +59,7 @@ export default function Catalog({
 
   // Filter products based on search term and selected category
   const filteredProducts = products.filter((product) => {
+    if (product.isActive === false) return false;
     const normalizedSearch = normalizeText(searchTerm);
     const matchesSearch = normalizeText(product.name).includes(normalizedSearch) ||
                           (product.description && normalizeText(product.description).includes(normalizedSearch));

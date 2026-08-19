@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { PlusCircle, Plus, Search, Trash2, Edit, TrendingUp, ChevronLeft, ChevronRight, ChevronDown, ShoppingCart, Tag, Image, Sparkles, RefreshCw, Eye, X, Save } from 'lucide-react';
+import { PlusCircle, Plus, Search, Trash2, Edit, TrendingUp, ChevronLeft, ChevronRight, ChevronDown, ShoppingCart, Tag, Image, Sparkles, RefreshCw, Eye, EyeOff, X, Save } from 'lucide-react';
 import { Product, CategoryType, DailyOffer } from '../types';
 
 interface DashboardProps {
   products: Product[];
   onDeleteProduct: (id: string) => void;
   onEditProduct: (product: Product) => void;
+  onToggleActive: (product: Product) => void;
   onAddProductTrigger: () => void;
   cartCount: number;
   onNavigateToCart: () => void;
@@ -31,6 +32,7 @@ export default function Dashboard({
   products,
   onDeleteProduct,
   onEditProduct,
+  onToggleActive,
   onAddProductTrigger,
   cartCount,
   onNavigateToCart,
@@ -1063,7 +1065,14 @@ export default function Dashboard({
                             />
                           </div>
                           <div>
-                            <p className="font-bold text-sm text-[#181d18]">{product.name}</p>
+                            <p className="font-bold text-sm text-[#181d18] flex items-center gap-1.5">
+                              {product.name}
+                              {product.isActive === false && (
+                                <span className="text-[9px] font-bold text-white bg-[#a5521b] rounded-full px-2 py-0.5">
+                                  ESGOTADO
+                                </span>
+                              )}
+                            </p>
                             <div className="flex flex-wrap items-center gap-1.5 mt-1">
                               <span className="text-[10px] text-[#707a6e] font-semibold bg-gray-100 rounded-full px-2 py-0.5 border border-gray-200 shadow-xs">
                                 ID: {product.id}
@@ -1139,6 +1148,17 @@ export default function Dashboard({
                       {/* Actions edit or remove */}
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => onToggleActive(product)}
+                            className={`p-2 rounded-full transition-all cursor-pointer ${
+                              product.isActive === false
+                                ? 'text-[#a5521b] bg-[#a5521b]/10 hover:bg-[#a5521b]/20'
+                                : 'text-[#176c33] hover:bg-[#176c33]/10'
+                            }`}
+                            title={product.isActive === false ? 'Reativar Produto (voltar ao catálogo)' : 'Desativar Produto (esgotado)'}
+                          >
+                            {product.isActive === false ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
                           <button
                             onClick={() => onEditProduct(product)}
                             className="p-2 text-[#176c33] hover:bg-[#176c33]/10 rounded-full transition-all cursor-pointer"

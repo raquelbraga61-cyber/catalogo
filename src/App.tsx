@@ -394,6 +394,15 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
     setCart((prevCart) => prevCart.filter((item) => item.product.id !== id));
   };
 
+  const handleToggleActive = (product: Product) => {
+    const willBeActive = product.isActive === false; // toggling
+    setDoc(doc(db, 'products', product.id), { ...product, isActive: willBeActive });
+    // If deactivating (marking as out of stock), remove it from the current shopping bag too
+    if (!willBeActive) {
+      setCart((prevCart) => prevCart.filter((item) => item.product.id !== product.id));
+    }
+  };
+
   const handleAddProductTrigger = () => {
     setSelectedEditingProduct(null);
     setFormMode('create');
@@ -459,6 +468,7 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
             onAddProductTrigger={handleAddProductTrigger}
             onEditProduct={handleEditProductTrigger}
             onDeleteProduct={handleDeleteProduct}
+            onToggleActive={handleToggleActive}
             onNavigateToCart={() => handleNavigate('cart')}
             dailyOffers={dailyOffers}
             onUpdateDailyOffers={setDailyOffers}

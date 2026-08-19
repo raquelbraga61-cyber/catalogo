@@ -25,6 +25,7 @@ export interface Product {
   description: string;
   imageUrl: string;
   stock?: number; // stock count
+  isActive?: boolean; // false = produto esgotado/desativado, some do catálogo pro cliente comprar
   isFavorite?: boolean;
   isOwnProduction?: boolean; // True if self-produced in-house product
 }

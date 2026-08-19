@@ -98,7 +98,7 @@ export default function Header({
                       value={searchTerm}
                       onChange={(e) => onSearchChange(e.target.value)}
                       placeholder={currentView === 'dashboard' ? 'Buscar no inventário...' : 'O que você procura?'}
-                      className="bg-transparent border-none outline-none text-sm text-[#181d18] w-40 md:w-60 px-1 placeholder-[#707a6e]"
+                      className="bg-transparent border-none outline-none text-base text-[#181d18] w-40 md:w-60 px-1 placeholder-[#707a6e]"
                       autoFocus
                     />
                     <button 

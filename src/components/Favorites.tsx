@@ -17,7 +17,7 @@ export default function Favorites({
 }: FavoritesProps) {
   const [selectedUnits, setSelectedUnits] = useState<Record<string, 'UNI' | 'KG' | 'INTEIRO' | 'BANDA' | 'QUARTO'>>({});
 
-  const favoriteProducts = products.filter((p) => p.isFavorite);
+  const favoriteProducts = products.filter((p) => p.isFavorite && p.isActive !== false);
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto animate-in fade-in duration-300">
