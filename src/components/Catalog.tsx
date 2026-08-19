@@ -406,10 +406,10 @@ export default function Catalog({
                                 price: displayPrice,
                                 variantLabel: currentVariant?.label
                               })}
-                              className="w-8 h-8 rounded-full bg-[#176c33] hover:bg-[#115326] text-white flex items-center justify-center transition-all duration-300 active:scale-90 shadow-sm cursor-pointer shrink-0"
+                              className="w-7 h-7 rounded-full bg-[#176c33] hover:bg-[#115326] text-white flex items-center justify-center transition-all duration-300 active:scale-90 shadow-sm cursor-pointer shrink-0"
                               aria-label="Adicionar ao carrinho"
                             >
-                              <Plus className="w-4 h-4" />
+                              <Plus className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </div>
