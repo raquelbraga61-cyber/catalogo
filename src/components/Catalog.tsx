@@ -240,7 +240,7 @@ export default function Catalog({
                   </div>
 
                   {/* Grid for this specific category */}
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 items-start">
                     {categoryProducts.map((product) => {
                       const resolvedAllowedUnits = product.allowedUnits || 'BOTH';
                       let currentUnit: 'KG' | 'UNI' | 'INTEIRO' | 'BANDA' | 'QUARTO' = product.saleType;
@@ -281,7 +281,7 @@ export default function Catalog({
                       return (
                         <div
                           key={product.id}
-                          className="group bg-white rounded-xl p-4 shadow-sm border border-[#bfc9bc]/10 hover:shadow-md transition-all duration-300 relative flex flex-col justify-between"
+                          className="group bg-white rounded-xl p-4 shadow-sm border border-[#bfc9bc]/10 hover:shadow-md transition-all duration-300 relative flex flex-col"
                         >
                           <div>
                             {/* Image and Love Toggle */}
