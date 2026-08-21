@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PlusCircle, Plus, Search, Trash2, Edit, TrendingUp, ChevronLeft, ChevronRight, ChevronDown, ShoppingCart, Tag, Image, Sparkles, RefreshCw, Eye, EyeOff, X, Save } from 'lucide-react';
+import { PlusCircle, Plus, Search, Trash2, Edit, TrendingUp, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, ShoppingCart, Tag, Image, Sparkles, RefreshCw, Eye, EyeOff, X, Save } from 'lucide-react';
 import { Product, CategoryType, DailyOffer } from '../types';
 
 interface DashboardProps {
@@ -8,6 +8,7 @@ interface DashboardProps {
   onBulkUpdateImages: (updates: { id: string; imageUrl: string }[]) => Promise<void>;
   onEditProduct: (product: Product) => void;
   onToggleActive: (product: Product) => void;
+  onReorderProduct: (productId: string, direction: 'up' | 'down', orderedIds: string[]) => void;
   onAddProductTrigger: () => void;
   cartCount: number;
   onNavigateToCart: () => void;
@@ -35,6 +36,7 @@ export default function Dashboard({
   onBulkUpdateImages,
   onEditProduct,
   onToggleActive,
+  onReorderProduct,
   onAddProductTrigger,
   cartCount,
   onNavigateToCart,
@@ -49,7 +51,7 @@ export default function Dashboard({
   onToggleOffline
 }: DashboardProps) {
   const [selectedCategory, setSelectedCategory] = useState<CategoryType | 'all'>('all');
-  const [sortField, setSortField] = useState<'name' | 'price' | 'stock'>('name');
+  const [sortField, setSortField] = useState<'custom' | 'name' | 'price' | 'stock'>('custom');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
@@ -371,7 +373,7 @@ export default function Dashboard({
   };
 
   // Handles sorting togglet
-  const handleSort = (field: 'name' | 'price' | 'stock') => {
+  const handleSort = (field: 'custom' | 'name' | 'price' | 'stock') => {
     if (sortField === field) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
@@ -391,6 +393,9 @@ export default function Dashboard({
   // Sort Products
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     let multiplier = sortOrder === 'asc' ? 1 : -1;
+    if (sortField === 'custom') {
+      return (a.displayOrder ?? 0) - (b.displayOrder ?? 0);
+    }
     if (sortField === 'name') {
       return multiplier * a.name.localeCompare(b.name);
     }
@@ -1156,6 +1161,13 @@ export default function Dashboard({
           <table className="w-full text-left border-collapse">
             <thead className="bg-[#f1f5ed] border-b border-[#bfc9bc]/15">
               <tr>
+                <th
+                  onClick={() => handleSort('custom')}
+                  className="px-3 py-4 text-xs font-bold text-[#40493f] uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none transition-colors text-center"
+                  title="Ordem manual de exibição no catálogo"
+                >
+                  Ordem {sortField === 'custom' && '✓'}
+                </th>
                 <th 
                   onClick={() => handleSort('name')}
                   className="px-6 py-4 text-xs font-bold text-[#40493f] uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none transition-colors"
@@ -1185,7 +1197,7 @@ export default function Dashboard({
             <tbody className="divide-y divide-[#bfc9bc]/10">
               {pagedProducts.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-12 text-[#707a6e] text-sm">
+                  <td colSpan={6} className="text-center py-12 text-[#707a6e] text-sm">
                     Nenhum produto cadastrado corresponde aos critérios de pesquisa atuais.
                   </td>
                 </tr>
@@ -1193,10 +1205,35 @@ export default function Dashboard({
                 pagedProducts.map((product) => {
                   const stockValue = product.stock || 0;
                   const isStockCritical = stockValue < 50;
+                  const orderedIds = sortedProducts.map((p) => p.id);
                   
                   return (
                     <tr key={product.id} className="hover:bg-[#f1f5ed]/30 transition-all duration-150">
-                      
+
+                      {/* Manual order cell */}
+                      <td className="px-3 py-4">
+                        <div className="flex flex-col items-center gap-0.5">
+                          <button
+                            type="button"
+                            disabled={sortField !== 'custom'}
+                            onClick={() => onReorderProduct(product.id, 'up', orderedIds)}
+                            className="w-6 h-6 flex items-center justify-center rounded-full text-[#176c33] hover:bg-[#176c33]/10 disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                            title="Mover para cima"
+                          >
+                            <ChevronUp className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            disabled={sortField !== 'custom'}
+                            onClick={() => onReorderProduct(product.id, 'down', orderedIds)}
+                            className="w-6 h-6 flex items-center justify-center rounded-full text-[#176c33] hover:bg-[#176c33]/10 disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                            title="Mover para baixo"
+                          >
+                            <ChevronDown className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+
                       {/* Product identity cell */}
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">

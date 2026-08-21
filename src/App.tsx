@@ -394,15 +394,35 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
         .reduce((max, num) => Math.max(max, num), 0);
 
       const nextId = `HT-${String(lastIdNumber + 1).padStart(3, '0')}`;
+      const maxOrder = products.reduce((max, p) => Math.max(max, p.displayOrder ?? 0), 0);
       const newProduct: Product = {
         ...(productData as Product),
-        id: nextId
+        id: nextId,
+        displayOrder: maxOrder + 1
       };
       setDoc(doc(db, 'products', newProduct.id), newProduct);
     }
 
     // Reset Form contexts
     setSelectedEditingProduct(null);
+  };
+
+  const handleReorderProduct = (productId: string, direction: 'up' | 'down', orderedIds: string[]) => {
+    const currentIndex = orderedIds.indexOf(productId);
+    const swapIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (currentIndex === -1 || swapIndex < 0 || swapIndex >= orderedIds.length) return;
+
+    // Swap positions in the list, then renumber everyone sequentially.
+    // This is more robust than swapping raw displayOrder values, since older
+    // products may all start with the same (or no) displayOrder.
+    const newOrder = [...orderedIds];
+    [newOrder[currentIndex], newOrder[swapIndex]] = [newOrder[swapIndex], newOrder[currentIndex]];
+
+    const batch = writeBatch(db);
+    newOrder.forEach((id, index) => {
+      batch.update(doc(db, 'products', id), { displayOrder: index });
+    });
+    batch.commit();
   };
 
   const handleDeleteProduct = (id: string) => {
@@ -500,6 +520,7 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
             onEditProduct={handleEditProductTrigger}
             onDeleteProduct={handleDeleteProduct}
             onToggleActive={handleToggleActive}
+            onReorderProduct={handleReorderProduct}
             onBulkUpdateImages={handleBulkUpdateImages}
             onNavigateToCart={() => handleNavigate('cart')}
             dailyOffers={dailyOffers}

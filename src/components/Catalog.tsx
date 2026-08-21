@@ -80,9 +80,11 @@ export default function Catalog({
         return orderA - orderB;
       }
       
-      // Secondary sort: alphabetical sorting of product names
-      return a.name.localeCompare(b.name, 'pt-BR');
+      // Secondary sort: manual display order set by the admin
+      return (a.displayOrder ?? 0) - (b.displayOrder ?? 0);
     });
+  } else {
+    filteredProducts.sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
   }
 
   const cartTotal = cartItems.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
