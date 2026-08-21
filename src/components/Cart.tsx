@@ -497,7 +497,7 @@ export default function Cart({
               <div className="pt-4 space-y-3">
                 {totalValue < 15 && (
                   <div className="bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold rounded-2xl p-4 flex flex-col gap-1 items-center text-center animate-in slide-in-from-top-1 duration-200">
-                    <span className="flex items-center gap-1.5 text-amber-700">⚠️ Valor mínimo do pedido: R$ 15,00</span>
+                    <span className="flex items-center gap-1.5 text-amber-700">Valor mínimo do pedido: R$ 15,00</span>
                     <span className="font-normal text-amber-600">Falta apenas R$ {(15 - totalValue).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} em produtos no seu carrinho para finalizar.</span>
                   </div>
                 )}
