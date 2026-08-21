@@ -66,6 +66,7 @@ export default function Dashboard({
   const [offerTitle, setOfferTitle] = useState('');
   const [offerDesc, setOfferDesc] = useState('');
   const [offerImg, setOfferImg] = useState('');
+  const [isUploadingBannerImg, setIsUploadingBannerImg] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   const handleStartEditBanner = (offer: DailyOffer) => {
@@ -88,9 +89,47 @@ export default function Dashboard({
     setSaveSuccess(false);
   };
 
+  const compressBannerImage = (file: File, maxWidth = 1000, quality = 0.6): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new window.Image();
+        img.onload = () => {
+          const scale = Math.min(1, maxWidth / img.width);
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width * scale;
+          canvas.height = img.height * scale;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = reject;
+        img.src = event.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleBannerImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingBannerImg(true);
+    try {
+      const compressed = await compressBannerImage(file);
+      setOfferImg(compressed);
+      setSaveSuccess(false);
+    } catch (err) {
+      console.error('Erro ao processar imagem do banner:', err);
+      alert('Não foi possível processar essa imagem. Tente outra foto.');
+    } finally {
+      setIsUploadingBannerImg(false);
+    }
+  };
+
   const handleSaveBanner = () => {
-    if (!offerTitle.trim() || !offerImg.trim()) {
-      alert('Por favor, preencha o título e a imagem do banner.');
+    if (!offerImg.trim()) {
+      alert('Por favor, escolha uma imagem para o banner.');
       return;
     }
 
@@ -747,10 +786,9 @@ export default function Dashboard({
 
                     {/* Title */}
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-[#40493f]">Título Principal *</label>
+                      <label className="text-xs font-bold text-[#40493f]">Título Principal</label>
                       <input
                         type="text"
-                        required
                         value={offerTitle}
                         onChange={(e) => {
                           setOfferTitle(e.target.value);
@@ -780,21 +818,31 @@ export default function Dashboard({
                   {/* Image URL with Preset Backgrounds */}
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-[#40493f]">
-                      URL da Imagem de Fundo * (ou selecione um preset)
+                      Imagem de Fundo * (envie uma foto, use uma URL ou selecione um preset)
                     </label>
-                    <div className="relative">
-                      <Image className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#707a6e]" />
-                      <input
-                        type="url"
-                        required
-                        value={offerImg}
-                        onChange={(e) => {
-                          setOfferImg(e.target.value);
-                          setSaveSuccess(false);
-                        }}
-                        placeholder="https://exemplo.com/horta.jpg"
-                        className="w-full h-9 pl-9 pr-4 bg-[#f7fbf2] border border-[#bfc9bc]/40 rounded-full text-xs font-semibold text-[#181d18] focus:ring-2 focus:ring-[#176c33] focus:outline-none"
-                      />
+                    <div className="flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <Image className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#707a6e]" />
+                        <input
+                          type="url"
+                          value={offerImg.startsWith('data:image') ? '' : offerImg}
+                          onChange={(e) => {
+                            setOfferImg(e.target.value);
+                            setSaveSuccess(false);
+                          }}
+                          placeholder="https://exemplo.com/horta.jpg"
+                          className="w-full h-9 pl-9 pr-4 bg-[#f7fbf2] border border-[#bfc9bc]/40 rounded-full text-xs font-semibold text-[#181d18] focus:ring-2 focus:ring-[#176c33] focus:outline-none"
+                        />
+                      </div>
+                      <label className="shrink-0 h-9 px-4 flex items-center gap-1.5 bg-[#176c33] hover:bg-[#115326] text-white rounded-full text-xs font-bold cursor-pointer transition-all">
+                        {isUploadingBannerImg ? 'Enviando...' : 'Enviar Foto'}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleBannerImageUpload}
+                          className="hidden"
+                        />
+                      </label>
                     </div>
 
                     <div className="flex flex-wrap gap-1.5 pt-1">
