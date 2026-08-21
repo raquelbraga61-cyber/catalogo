@@ -41,6 +41,7 @@ export interface CustomerInfo {
   neighborhood?: string;
   paymentMethod?: string;
   cashChange?: string;
+  notes?: string;
 }
 
 export type ViewType = 'catalog' | 'cart' | 'dashboard' | 'form' | 'favorites';

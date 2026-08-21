@@ -23,6 +23,27 @@ export default function Cart({
 }: CartProps) {
   const [isSubmitSuccessful, setIsSubmitSuccessful] = useState(false);
 
+  // Delivery hours: 07:00-12:30 and 15:00-16:40, paused 12:30-15:00, closed after 16:40
+  const checkDeliveryHours = (): { withinHours: boolean; nextSlotText: string } => {
+    const now = new Date();
+    const minutes = now.getHours() * 60 + now.getMinutes();
+    const OPEN_MORNING = 7 * 60; // 07:00
+    const PAUSE_START = 12 * 60 + 30; // 12:30
+    const PAUSE_END = 15 * 60; // 15:00
+    const CLOSE = 16 * 60 + 40; // 16:40
+
+    if (minutes < OPEN_MORNING) {
+      return { withinHours: false, nextSlotText: 'a partir das 7:00 de hoje' };
+    }
+    if (minutes >= PAUSE_START && minutes < PAUSE_END) {
+      return { withinHours: false, nextSlotText: 'a partir das 15:00 de hoje' };
+    }
+    if (minutes >= CLOSE) {
+      return { withinHours: false, nextSlotText: 'a partir das 7:00 de amanhã' };
+    }
+    return { withinHours: true, nextSlotText: '' };
+  };
+
   // Totals
   const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
   const totalValue = cartItems.reduce((acc, item) => {
@@ -38,6 +59,8 @@ export default function Cart({
       onUpdateCustomerInfo({ ...customerInfo, neighborhood: value });
     } else if (id === 'customer-address') {
       onUpdateCustomerInfo({ ...customerInfo, address: value });
+    } else if (id === 'customer-notes') {
+      onUpdateCustomerInfo({ ...customerInfo, notes: value });
     }
   };
 
@@ -57,6 +80,19 @@ export default function Cart({
     if (cartItems.length === 0) {
       alert('Seu carrinho está vazio.');
       return;
+    }
+
+    // Check delivery hours (07:00-12:30 and 15:00-16:40)
+    const { withinHours, nextSlotText } = checkDeliveryHours();
+    let outsideHoursNote = '';
+    if (!withinHours) {
+      const confirmNextSlot = window.confirm(
+        `No momento estamos fora do horário de entrega (entregamos das 7:00 às 12:30 e das 15:00 às 16:40).\n\nDeseja que seu pedido seja entregue no próximo horário disponível (${nextSlotText})?`
+      );
+      if (!confirmNextSlot) {
+        return;
+      }
+      outsideHoursNote = `\n\n⚠️ *Pedido fora do horário de entrega.* Cliente concorda em receber ${nextSlotText}.`;
     }
 
     // Build WhatsApp Message
@@ -83,7 +119,7 @@ export default function Cart({
       paymentText = 'PIX'; // Fallback / Default
     }
 
-    const message = `Olá! Gostaria de finalizar meu pedido no Sacolão:\n\n*Cliente:* ${customerInfo.name.trim()}\n*Bairro:* ${customerInfo.neighborhood.trim()}\n*Rua e Número:* ${customerInfo.address.trim()}\n*Forma de Pagamento:* ${paymentText}\n\n*Pedido:*\n${itemsText}\n\n*Subtotal aproximado:* R$ ${totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${hasNegotiableItems ? ' + itens a negociar' : ''}\n\nAguardo a confirmação do valor total e taxa de entrega.`;
+    const message = `Olá! Gostaria de finalizar meu pedido no Sacolão:\n\n*Cliente:* ${customerInfo.name.trim()}\n*Bairro:* ${customerInfo.neighborhood.trim()}\n*Rua e Número:* ${customerInfo.address.trim()}\n*Forma de Pagamento:* ${paymentText}${customerInfo.notes?.trim() ? `\n*Observação:* ${customerInfo.notes.trim()}` : ''}\n\n*Pedido:*\n${itemsText}\n\n*Subtotal aproximado:* R$ ${totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${hasNegotiableItems ? ' + itens a negociar' : ''}\n\nAguardo a confirmação do valor total e taxa de entrega.${outsideHoursNote}`;
     const encodedMessage = encodeURIComponent(message);
     const phoneNumber = '5585996450084'; // corrected WhatsApp phone number
 
@@ -254,6 +290,11 @@ export default function Cart({
 
           {/* Form & Billing Info Column (5/12) */}
           <div className="lg:col-span-5 space-y-6">
+            {!checkDeliveryHours().withinHours && (
+              <div className="bg-[#fff6e8] border border-[#f0c987] text-[#7a4413] text-xs font-semibold rounded-xl p-4">
+                No momento estamos fora do horário de entrega (entregamos das 7:00 às 12:30 e das 15:00 às 16:40). Você ainda pode finalizar o pedido, e ele será entregue {checkDeliveryHours().nextSlotText}.
+              </div>
+            )}
             <form onSubmit={handleCheckout} className="bg-white p-6 rounded-2xl shadow-sm border border-[#bfc9bc]/15 space-y-4">
               <h3 
                 className="font-bold text-lg text-[#181d18]"
@@ -307,6 +348,21 @@ export default function Cart({
                     onChange={handleInputChange}
                     rows={4}
                     placeholder="Rua, número, complemento e pontos de referência"
+                    className="w-full p-4 rounded-xl bg-[#f1f5ed] border-none focus:ring-2 focus:ring-[#176c33] focus:bg-white text-sm transition-all focus:outline-none resize-none"
+                  />
+                </div>
+
+                {/* Order Observation */}
+                <div className="space-y-1.5">
+                  <label htmlFor="customer-notes" className="block text-xs font-bold text-[#40493f] px-1 uppercase">
+                    Observação (opcional)
+                  </label>
+                  <textarea
+                    id="customer-notes"
+                    value={customerInfo.notes || ''}
+                    onChange={handleInputChange}
+                    rows={2}
+                    placeholder="Ex: trocar item se estiver em falta, tocar a campainha, etc."
                     className="w-full p-4 rounded-xl bg-[#f1f5ed] border-none focus:ring-2 focus:ring-[#176c33] focus:bg-white text-sm transition-all focus:outline-none resize-none"
                   />
                 </div>
