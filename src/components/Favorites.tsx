@@ -62,7 +62,7 @@ export default function Favorites({
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 items-start">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
           {favoriteProducts.map((product) => {
             const resolvedAllowedUnits = product.allowedUnits || 'BOTH';
             let currentUnit: 'KG' | 'UNI' | 'INTEIRO' | 'BANDA' | 'QUARTO' = product.saleType;
@@ -105,7 +105,7 @@ export default function Favorites({
             return (
               <div
                 key={product.id}
-                className="group bg-white rounded-xl p-4 shadow-sm border border-[#bfc9bc]/10 hover:shadow-md transition-all duration-300 relative flex flex-col"
+                className="group bg-white rounded-xl p-4 shadow-sm border border-[#bfc9bc]/10 hover:shadow-md transition-all duration-300 relative flex flex-col h-full"
               >
                 {/* Image and Remove Toggle */}
                 <div className="relative aspect-square mb-4 rounded-lg overflow-hidden bg-[#f1f5ed] border border-gray-100">
