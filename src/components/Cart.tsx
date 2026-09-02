@@ -104,7 +104,8 @@ export default function Cart({
         item.product.saleType === 'BANDA' ? 'banda' : 
         item.product.saleType === 'QUARTO' ? '1/4' : 'un';
       const formattedQty = item.product.saleType === 'KG' ? item.quantity.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 2 }) : Math.round(item.quantity);
-      return `- ${item.product.name}: ${formattedQty} ${unitLabel}`;
+      const variantText = item.product.variantLabel ? ` (${item.product.variantLabel})` : '';
+      return `- ${item.product.name}${variantText}: ${formattedQty} ${unitLabel}`;
     }).join('\n');
 
     let paymentText = '';
