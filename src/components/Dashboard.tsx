@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { PlusCircle, Plus, Search, Trash2, Edit, TrendingUp, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, ShoppingCart, Tag, Image, Sparkles, RefreshCw, Eye, EyeOff, X, Save } from 'lucide-react';
-import { Product, CategoryType, DailyOffer } from '../types';
+import { Product, CategoryType, DailyOffer, Order } from '../types';
 
 interface DashboardProps {
   products: Product[];
@@ -21,6 +21,8 @@ interface DashboardProps {
   onEditCategory?: (oldName: string, newName: string) => void;
   isOffline?: boolean;
   onToggleOffline?: (val: boolean) => void;
+  orders: Order[];
+  onResetOrders: () => void;
 }
 
 const BACKGROUND_PRESETS = [
@@ -48,7 +50,9 @@ export default function Dashboard({
   onDeleteCategory,
   onEditCategory,
   isOffline = false,
-  onToggleOffline
+  onToggleOffline,
+  orders,
+  onResetOrders
 }: DashboardProps) {
   const [selectedCategory, setSelectedCategory] = useState<CategoryType | 'all'>('all');
   const [sortField, setSortField] = useState<'custom' | 'name' | 'price' | 'stock'>('custom');
@@ -268,49 +272,6 @@ export default function Dashboard({
   const categoriesCount = new Set(products.map(p => p.category)).size;
 
   // Retrieve and calculate order statistics for Day, Week, Month
-  const [orders, setOrders] = useState<{ timestamp: number; totalValue: number; itemsCount: number }[]>(() => {
-    const stored = localStorage.getItem('sacolao_orders');
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          return parsed;
-        }
-      } catch (e) {
-        // Continue to seed if error
-      }
-    }
-    
-    // Seed realistic order history for demonstration/admin convenience (up to 120 days ago)
-    const seedOrders: { timestamp: number; totalValue: number; itemsCount: number }[] = [];
-    const now = Date.now();
-    const oneDay = 24 * 60 * 60 * 1000;
-    
-    // Add 3 orders today (same calendar day)
-    seedOrders.push({ timestamp: now - 0.1 * oneDay, totalValue: 42.50, itemsCount: 4 });
-    seedOrders.push({ timestamp: now - 0.3 * oneDay, totalValue: 28.90, itemsCount: 3 });
-    seedOrders.push({ timestamp: now - 0.6 * oneDay, totalValue: 65.20, itemsCount: 6 });
-    
-    // Add orders over the last 120 days to guarantee multi-month archives
-    for (let i = 1; i < 120; i++) {
-      // Different probabilities or number of orders depending on age
-      const probability = i < 7 ? 0.9 : i < 30 ? 0.7 : 0.45;
-      if (Math.random() < probability) {
-        const numOrders = Math.floor(Math.random() * 2) + 1; // 1 to 2 orders
-        for (let j = 0; j < numOrders; j++) {
-          seedOrders.push({
-            timestamp: now - i * oneDay - Math.random() * 0.5 * oneDay,
-            totalValue: parseFloat((Math.random() * 45 + 15).toFixed(2)),
-            itemsCount: Math.floor(Math.random() * 4) + 2
-          });
-        }
-      }
-    }
-    
-    localStorage.setItem('sacolao_orders', JSON.stringify(seedOrders));
-    return seedOrders;
-  });
-
   const now = Date.now();
   const oneDay = 24 * 60 * 60 * 1000;
   
@@ -477,8 +438,7 @@ export default function Dashboard({
                     <button
                       type="button"
                       onClick={() => {
-                        setOrders([]);
-                        localStorage.setItem('sacolao_orders', JSON.stringify([]));
+                        onResetOrders();
                         setConfirmReset(false);
                       }}
                       className="bg-red-600 hover:bg-red-700 active:scale-95 text-[9px] text-white px-2 py-1 rounded font-black cursor-pointer transition-all uppercase select-none"

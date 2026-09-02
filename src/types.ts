@@ -4,6 +4,14 @@
 
 export type CategoryType = string;
 
+export interface Order {
+  id?: string;
+  timestamp: number;
+  totalValue: number;
+  itemsCount: number;
+  customerName?: string;
+}
+
 export interface ProductVariant {
   label: string; // e.g. "500g", "1kg", "Caixa com 6"
   price: number;

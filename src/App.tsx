@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Pencil, Save } from 'lucide-react';
 import { DEFAULT_PRODUCTS, DEFAULT_DAILY_OFFER } from './data';
-import { Product, CartItem, CustomerInfo, ViewType, FormMode, DailyOffer, FooterInfo } from './types';
+import { Product, CartItem, CustomerInfo, ViewType, FormMode, DailyOffer, FooterInfo, Order } from './types';
 import { db } from './firebase';
-import { doc, onSnapshot, setDoc, deleteDoc, collection, writeBatch, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, deleteDoc, collection, writeBatch, getDoc, addDoc, getDocs } from 'firebase/firestore';
 import Header from './components/Header';
 import Catalog from './components/Catalog';
 import Cart from './components/Cart';
@@ -124,6 +124,8 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
   const [footerDraft, setFooterDraft] = useState<FooterInfo>(defaultFooterInfo);
   const footerLoaded = useRef(false);
   const skipNextFooterWrite = useRef(false);
+
+  const [orders, setOrders] = useState<Order[]>([]);
 
   const handleAddCategory = (name: string, icon: string) => {
     const normalizedName = name.trim();
@@ -300,6 +302,32 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
     }
     setDoc(doc(db, 'sacolao', 'footer'), footerInfo);
   }, [footerInfo]);
+
+  // Orders: synced live from Firestore so every completed checkout shows up for the admin, from any device
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, 'orders'), (snap) => {
+      const list = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Order));
+      list.sort((a, b) => a.timestamp - b.timestamp);
+      setOrders(list);
+    });
+    return () => unsub();
+  }, []);
+
+  const handleOrderPlaced = (order: { totalValue: number; itemsCount: number; customerName: string }) => {
+    addDoc(collection(db, 'orders'), {
+      timestamp: Date.now(),
+      totalValue: order.totalValue,
+      itemsCount: order.itemsCount,
+      customerName: order.customerName
+    });
+  };
+
+  const handleResetOrders = async () => {
+    const snap = await getDocs(collection(db, 'orders'));
+    const batch = writeBatch(db);
+    snap.docs.forEach((d) => batch.delete(d.ref));
+    await batch.commit();
+  };
 
   useEffect(() => {
     const unsub = onSnapshot(doc(db, 'sacolao', 'dailyOffers'), (snap) => {
@@ -544,6 +572,7 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
             onUpdateCustomerInfo={setCustomerInfo}
             onClearCart={handleClearCart}
             onNavigateToCatalog={() => handleNavigate('catalog')}
+            onOrderPlaced={handleOrderPlaced}
           />
         );
       case 'dashboard':
@@ -578,6 +607,8 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
             onEditCategory={handleEditCategory}
             isOffline={isOffline}
             onToggleOffline={handleToggleOffline}
+            orders={orders}
+            onResetOrders={handleResetOrders}
           />
         );
       case 'form':

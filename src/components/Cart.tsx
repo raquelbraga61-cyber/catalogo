@@ -10,6 +10,7 @@ interface CartProps {
   onUpdateCustomerInfo: (info: CustomerInfo) => void;
   onClearCart: () => void;
   onNavigateToCatalog: () => void;
+  onOrderPlaced: (order: { totalValue: number; itemsCount: number; customerName: string }) => void;
 }
 
 export default function Cart({
@@ -19,7 +20,8 @@ export default function Cart({
   customerInfo,
   onUpdateCustomerInfo,
   onClearCart,
-  onNavigateToCatalog
+  onNavigateToCatalog,
+  onOrderPlaced
 }: CartProps) {
   const [isSubmitSuccessful, setIsSubmitSuccessful] = useState(false);
 
@@ -127,31 +129,13 @@ export default function Cart({
     // Open WhatsApp URL
     window.open(`https://wa.me/${phoneNumber}?text=${encodedMessage}`, '_blank');
     
-    // Save order details to localStorage for growth metrics
-    try {
-      const itemsCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
-      const newOrder = {
-        timestamp: Date.now(),
-        totalValue: totalValue,
-        itemsCount: itemsCount
-      };
-      const existingOrdersStr = localStorage.getItem('sacolao_orders');
-      let orders = [];
-      if (existingOrdersStr) {
-        try {
-          orders = JSON.parse(existingOrdersStr);
-          if (!Array.isArray(orders)) {
-            orders = [];
-          }
-        } catch (err) {
-          orders = [];
-        }
-      }
-      orders.push(newOrder);
-      localStorage.setItem('sacolao_orders', JSON.stringify(orders));
-    } catch (e) {
-      console.error('Erro ao salvar registro de venda:', e);
-    }
+    // Record the completed order so it syncs to the admin panel for everyone
+    const itemsCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+    onOrderPlaced({
+      totalValue,
+      itemsCount,
+      customerName: customerInfo.name.trim()
+    });
 
     // Show beautiful local success indicator
     setIsSubmitSuccessful(true);
