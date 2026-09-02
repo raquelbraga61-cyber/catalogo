@@ -177,14 +177,35 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
     return sessionStorage.getItem('sacolao_is_admin') === 'true';
   });
 
-  const [isOffline, setIsOffline] = useState<boolean>(() => {
-    return localStorage.getItem('sacolao_is_offline') === 'true';
-  });
+  const [isOffline, setIsOffline] = useState<boolean>(false);
+  const isOfflineLoaded = useRef(false);
+  const skipNextIsOfflineWrite = useRef(false);
 
   const handleToggleOffline = (val: boolean) => {
     setIsOffline(val);
-    localStorage.setItem('sacolao_is_offline', String(val));
   };
+
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'sacolao', 'site_status'), (snap) => {
+      if (snap.exists()) {
+        skipNextIsOfflineWrite.current = true;
+        setIsOffline(!!snap.data().isOffline);
+      } else {
+        setDoc(doc(db, 'sacolao', 'site_status'), { isOffline: false });
+      }
+      isOfflineLoaded.current = true;
+    });
+    return () => unsub();
+  }, []);
+
+  useEffect(() => {
+    if (!isOfflineLoaded.current) return;
+    if (skipNextIsOfflineWrite.current) {
+      skipNextIsOfflineWrite.current = false;
+      return;
+    }
+    setDoc(doc(db, 'sacolao', 'site_status'), { isOffline });
+  }, [isOffline]);
 
   const handleLogoutAdmin = () => {
     setIsAdmin(false);
@@ -669,7 +690,7 @@ if (!isProductsReady) {
               onClick={() => handleNavigate('dashboard')}
               className="text-xs font-bold text-[#176c33] hover:underline flex items-center gap-1 cursor-pointer"
             >
-              🔐 Área do Administrador
+              Área do Administrador
             </button>
           </div>
         </header>
@@ -677,7 +698,6 @@ if (!isProductsReady) {
         <main className="flex-grow flex items-center justify-center p-5">
           <div className="bg-white p-10 rounded-2xl border border-[#bfc9bc]/30 shadow-xl max-w-lg w-full text-center space-y-6 animate-in zoom-in-95 duration-200">
             <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center text-amber-500 mx-auto border border-amber-200 shadow-xs">
-              <span className="text-4xl">🛠️</span>
             </div>
             
             <div className="space-y-3">
@@ -688,7 +708,7 @@ if (!isProductsReady) {
                 Estamos fazendo algumas melhorias e atualizando nosso catálogo com as frutas, legumes e verduras mais frescos da região para melhor lhe atender.
               </p>
               <div className="bg-[#f7fbf2] p-4 rounded-xl border border-[#bfc9bc]/20 text-xs text-[#176c33] font-bold">
-                Voltamos em instantes! Agradecemos a sua compreensão. 🥬🍅
+                Voltamos em instantes! Agradecemos a sua compreensão.
               </div>
             </div>
 
