@@ -89,14 +89,24 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
   const dailyOffersLoaded = useRef(false);
   const skipNextDailyOffersWrite = useRef(false);
 
-  const [categories, setCategories] = useState<{ name: string; icon: string }[]>([
+  const DEFAULT_CATEGORIES = [
     { name: 'Frutas', icon: '' },
     { name: 'Verduras', icon: '' },
     { name: 'Legumes', icon: '' },
     { name: 'Grãos', icon: '' }
-  ]);
+  ];
+  const [categories, setCategories] = useState<{ name: string; icon: string }[]>(DEFAULT_CATEGORIES);
   const categoriesLoaded = useRef(false);
-  const skipNextCategoriesWrite = useRef(false);
+
+  // Stable, safe document id derived from the category name (lowercase, no accents/spaces)
+  const categorySlug = (name: string) =>
+    name
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '') || `cat-${Date.now()}`;
 
   const defaultFooterInfo: FooterInfo = {
     aboutText: 'Selecionamos hortifrúti diariamente direto com produtores rurais. Higiene estrita, frescor imbatível e compromisso com o bem-estar da sua família na mesa.',
@@ -116,18 +126,17 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
   const skipNextFooterWrite = useRef(false);
 
   const handleAddCategory = (name: string, icon: string) => {
-    if (!name.trim()) return;
     const normalizedName = name.trim();
-    setCategories((prev) => {
-      if (prev.some((cat) => cat.name.toLowerCase() === normalizedName.toLowerCase())) {
-        return prev;
-      }
-      return [...prev, { name: normalizedName, icon: icon.trim() || '' }];
+    if (!normalizedName) return;
+    if (categories.some((cat) => cat.name.toLowerCase() === normalizedName.toLowerCase())) return;
+    setDoc(doc(db, 'categories', categorySlug(normalizedName)), {
+      name: normalizedName,
+      icon: icon.trim() || ''
     });
   };
 
   const handleDeleteCategory = (name: string) => {
-    setCategories((prev) => prev.filter((cat) => cat.name !== name));
+    deleteDoc(doc(db, 'categories', categorySlug(name)));
   };
 
   const handleEditCategory = (oldName: string, newName: string) => {
@@ -137,16 +146,22 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
       alert('Já existe uma categoria com esse nome.');
       return;
     }
-    setCategories((prev) => prev.map((cat) => (cat.name === oldName ? { ...cat, name: trimmedNew } : cat)));
+
+    const oldCat = categories.find((cat) => cat.name === oldName);
+    const batch = writeBatch(db);
+    // Category doc id is based on the name, so renaming means: create the new doc, delete the old one
+    batch.set(doc(db, 'categories', categorySlug(trimmedNew)), { name: trimmedNew, icon: oldCat?.icon || '' });
+    batch.delete(doc(db, 'categories', categorySlug(oldName)));
+    batch.commit();
 
     // Update every product that used the old category name so nothing gets orphaned
     const affectedProducts = products.filter((p) => p.category === oldName);
     if (affectedProducts.length > 0) {
-      const batch = writeBatch(db);
+      const productBatch = writeBatch(db);
       affectedProducts.forEach((p) => {
-        batch.set(doc(db, 'products', p.id), { ...p, category: trimmedNew });
+        productBatch.update(doc(db, 'products', p.id), { category: trimmedNew });
       });
-      batch.commit();
+      productBatch.commit();
     }
   };
 
@@ -209,27 +224,30 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
   }, []);
 
   useEffect(() => {
-    const unsub = onSnapshot(doc(db, 'sacolao', 'categories'), (snap) => {
-      if (snap.exists()) {
-        skipNextCategoriesWrite.current = true;
-        setCategories(snap.data().list);
+    const unsub = onSnapshot(collection(db, 'categories'), async (snap) => {
+      if (snap.empty) {
+        const migrationFlag = await getDoc(doc(db, 'sacolao', 'categories_migrated'));
+        if (!migrationFlag.exists()) {
+          const oldDoc = await getDoc(doc(db, 'sacolao', 'categories'));
+          const sourceList: { name: string; icon: string }[] =
+            oldDoc.exists() && Array.isArray(oldDoc.data().list)
+              ? oldDoc.data().list
+              : DEFAULT_CATEGORIES;
+          const batch = writeBatch(db);
+          sourceList.forEach((cat) => {
+            batch.set(doc(db, 'categories', categorySlug(cat.name)), cat);
+          });
+          batch.set(doc(db, 'sacolao', 'categories_migrated'), { done: true });
+          await batch.commit();
+        }
       } else {
-        setDoc(doc(db, 'sacolao', 'categories'), { list: categories });
+        setCategories(snap.docs.map((d) => d.data() as { name: string; icon: string }));
       }
       categoriesLoaded.current = true;
     });
     return () => unsub();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    if (!categoriesLoaded.current) return;
-    if (skipNextCategoriesWrite.current) {
-      skipNextCategoriesWrite.current = false;
-      return;
-    }
-    setDoc(doc(db, 'sacolao', 'categories'), { list: categories });
-  }, [categories]);
 
   useEffect(() => {
     const unsub = onSnapshot(doc(db, 'sacolao', 'footer'), (snap) => {
