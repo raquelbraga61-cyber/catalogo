@@ -90,12 +90,12 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
   const skipNextDailyOffersWrite = useRef(false);
 
   const DEFAULT_CATEGORIES = [
-    { name: 'Frutas', icon: '' },
-    { name: 'Verduras', icon: '' },
-    { name: 'Legumes', icon: '' },
-    { name: 'Grãos', icon: '' }
+    { name: 'Frutas', icon: '', order: 0 },
+    { name: 'Verduras', icon: '', order: 1 },
+    { name: 'Legumes', icon: '', order: 2 },
+    { name: 'Grãos', icon: '', order: 3 }
   ];
-  const [categories, setCategories] = useState<{ name: string; icon: string }[]>(DEFAULT_CATEGORIES);
+  const [categories, setCategories] = useState<{ name: string; icon: string; order: number }[]>(DEFAULT_CATEGORIES);
   const categoriesLoaded = useRef(false);
 
   // Stable, safe document id derived from the category name (lowercase, no accents/spaces)
@@ -129,9 +129,11 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
     const normalizedName = name.trim();
     if (!normalizedName) return;
     if (categories.some((cat) => cat.name.toLowerCase() === normalizedName.toLowerCase())) return;
+    const maxOrder = categories.reduce((max, c) => Math.max(max, c.order ?? 0), 0);
     setDoc(doc(db, 'categories', categorySlug(normalizedName)), {
       name: normalizedName,
-      icon: icon.trim() || ''
+      icon: icon.trim() || '',
+      order: maxOrder + 1
     });
   };
 
@@ -150,7 +152,7 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
     const oldCat = categories.find((cat) => cat.name === oldName);
     const batch = writeBatch(db);
     // Category doc id is based on the name, so renaming means: create the new doc, delete the old one
-    batch.set(doc(db, 'categories', categorySlug(trimmedNew)), { name: trimmedNew, icon: oldCat?.icon || '' });
+    batch.set(doc(db, 'categories', categorySlug(trimmedNew)), { name: trimmedNew, icon: oldCat?.icon || '', order: oldCat?.order ?? 0 });
     batch.delete(doc(db, 'categories', categorySlug(oldName)));
     batch.commit();
 
@@ -234,14 +236,41 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
               ? oldDoc.data().list
               : DEFAULT_CATEGORIES;
           const batch = writeBatch(db);
-          sourceList.forEach((cat) => {
-            batch.set(doc(db, 'categories', categorySlug(cat.name)), cat);
+          sourceList.forEach((cat, index) => {
+            batch.set(doc(db, 'categories', categorySlug(cat.name)), { ...cat, order: index });
           });
           batch.set(doc(db, 'sacolao', 'categories_migrated'), { done: true });
           await batch.commit();
         }
       } else {
-        setCategories(snap.docs.map((d) => d.data() as { name: string; icon: string }));
+        const fetched = snap.docs.map((d) => d.data() as { name: string; icon: string; order?: number });
+
+        // One-time backfill: earlier migrated categories may be missing the "order" field.
+        // Recover the original creation order from the old list, if it still exists.
+        if (fetched.some((c) => c.order === undefined)) {
+          const backfillFlag = await getDoc(doc(db, 'sacolao', 'categories_order_backfilled'));
+          if (!backfillFlag.exists()) {
+            const oldDoc = await getDoc(doc(db, 'sacolao', 'categories'));
+            const oldOrderNames: string[] =
+              oldDoc.exists() && Array.isArray(oldDoc.data().list)
+                ? oldDoc.data().list.map((c: { name: string }) => c.name)
+                : fetched.map((c) => c.name);
+            const batch = writeBatch(db);
+            fetched.forEach((cat) => {
+              const idx = oldOrderNames.indexOf(cat.name);
+              const resolvedOrder = idx > -1 ? idx : oldOrderNames.length + 1;
+              batch.update(doc(db, 'categories', categorySlug(cat.name)), { order: resolvedOrder });
+            });
+            batch.set(doc(db, 'sacolao', 'categories_order_backfilled'), { done: true });
+            await batch.commit();
+          }
+        }
+
+        setCategories(
+          fetched
+            .map((c) => ({ name: c.name, icon: c.icon, order: c.order ?? 999 }))
+            .sort((a, b) => a.order - b.order)
+        );
       }
       categoriesLoaded.current = true;
     });
