@@ -717,9 +717,6 @@ if (!isProductsReady) {
 
         <main className="flex-grow flex items-center justify-center p-5">
           <div className="bg-white p-10 rounded-2xl border border-[#bfc9bc]/30 shadow-xl max-w-lg w-full text-center space-y-6 animate-in zoom-in-95 duration-200">
-            <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center text-amber-500 mx-auto border border-amber-200 shadow-xs">
-            </div>
-            
             <div className="space-y-3">
               <h1 className="text-2xl md:text-3xl font-extrabold text-[#181d18]" style={{ fontFamily: 'Plus Jakarta Sans' }}>
                 Estamos em Manutenção!
