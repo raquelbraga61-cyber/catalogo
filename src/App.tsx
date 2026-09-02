@@ -87,7 +87,6 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
     }
   ]);
   const dailyOffersLoaded = useRef(false);
-  const skipNextDailyOffersWrite = useRef(false);
 
   const DEFAULT_CATEGORIES = [
     { name: 'Frutas', icon: '', order: 0 },
@@ -183,12 +182,13 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
 
   const handleToggleOffline = (val: boolean) => {
     setIsOffline(val);
+    skipNextIsOfflineWrite.current = false;
+    setDoc(doc(db, 'sacolao', 'site_status'), { isOffline: val });
   };
 
   useEffect(() => {
     const unsub = onSnapshot(doc(db, 'sacolao', 'site_status'), (snap) => {
       if (snap.exists()) {
-        skipNextIsOfflineWrite.current = true;
         setIsOffline(!!snap.data().isOffline);
       } else {
         setDoc(doc(db, 'sacolao', 'site_status'), { isOffline: false });
@@ -197,15 +197,6 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
     });
     return () => unsub();
   }, []);
-
-  useEffect(() => {
-    if (!isOfflineLoaded.current) return;
-    if (skipNextIsOfflineWrite.current) {
-      skipNextIsOfflineWrite.current = false;
-      return;
-    }
-    setDoc(doc(db, 'sacolao', 'site_status'), { isOffline });
-  }, [isOffline]);
 
   const handleLogoutAdmin = () => {
     setIsAdmin(false);
@@ -351,12 +342,24 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
   };
 
   useEffect(() => {
-    const unsub = onSnapshot(doc(db, 'sacolao', 'dailyOffers'), (snap) => {
-      if (snap.exists()) {
-        skipNextDailyOffersWrite.current = true;
-        setDailyOffers(snap.data().list);
+    const unsub = onSnapshot(collection(db, 'dailyOffers'), async (snap) => {
+      if (snap.empty) {
+        const migrationFlag = await getDoc(doc(db, 'sacolao', 'dailyOffers_migrated'));
+        if (!migrationFlag.exists()) {
+          const oldDoc = await getDoc(doc(db, 'sacolao', 'dailyOffers'));
+          const sourceList: DailyOffer[] =
+            oldDoc.exists() && Array.isArray(oldDoc.data().list)
+              ? oldDoc.data().list
+              : dailyOffers;
+          const batch = writeBatch(db);
+          sourceList.forEach((offer, index) => {
+            batch.set(doc(db, 'dailyOffers', offer.id || `offer-${index}`), offer);
+          });
+          batch.set(doc(db, 'sacolao', 'dailyOffers_migrated'), { done: true });
+          await batch.commit();
+        }
       } else {
-        setDoc(doc(db, 'sacolao', 'dailyOffers'), { list: dailyOffers });
+        setDailyOffers(snap.docs.map((d) => d.data() as DailyOffer));
       }
       dailyOffersLoaded.current = true;
     });
@@ -364,14 +367,22 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    if (!dailyOffersLoaded.current) return;
-    if (skipNextDailyOffersWrite.current) {
-      skipNextDailyOffersWrite.current = false;
-      return;
-    }
-    setDoc(doc(db, 'sacolao', 'dailyOffers'), { list: dailyOffers });
-  }, [dailyOffers]);
+  const handleUpdateDailyOffers = (newOffers: DailyOffer[]) => {
+    setDailyOffers(newOffers);
+    const oldIds = dailyOffers.map((o) => o.id).filter(Boolean) as string[];
+    const newIds = new Set(newOffers.map((o) => o.id).filter(Boolean));
+    const batch = writeBatch(db);
+    newOffers.forEach((offer) => {
+      const offerId = offer.id || `offer-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      batch.set(doc(db, 'dailyOffers', offerId), { ...offer, id: offerId });
+    });
+    oldIds.forEach((id) => {
+      if (!newIds.has(id)) {
+        batch.delete(doc(db, 'dailyOffers', id));
+      }
+    });
+    batch.commit();
+  };
 
   useEffect(() => {
     localStorage.setItem('sacolao_cart', JSON.stringify(cart));
@@ -621,7 +632,7 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
             onBulkUpdateImages={handleBulkUpdateImages}
             onNavigateToCart={() => handleNavigate('cart')}
             dailyOffers={dailyOffers}
-            onUpdateDailyOffers={setDailyOffers}
+            onUpdateDailyOffers={handleUpdateDailyOffers}
             categories={categories}
             onAddCategory={handleAddCategory}
             onDeleteCategory={handleDeleteCategory}
