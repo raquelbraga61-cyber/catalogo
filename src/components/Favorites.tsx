@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Heart, Trash2, ShoppingCart, ArrowLeft, Plus } from 'lucide-react';
-import { Product, CartItem } from '../types';
+import { Heart, ArrowLeft, Plus } from 'lucide-react';
+import { Product } from '../types';
 
 interface FavoritesProps {
   products: Product[];
@@ -15,12 +15,13 @@ export default function Favorites({
   onAddToCart,
   onNavigateToCatalog
 }: FavoritesProps) {
-  const [selectedUnits, setSelectedUnits] = useState<Record<string, 'UNI' | 'KG' | 'INTEIRO' | 'BANDA' | 'QUARTO'>>({});
+  const [selectedUnits, setSelectedUnits] = useState<Record<string, 'UNI' | 'KG'>>({});
+  const [selectedVariantIndex, setSelectedVariantIndex] = useState<Record<string, number>>({});
 
   const favoriteProducts = products.filter((p) => p.isFavorite && p.isActive !== false);
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto animate-in fade-in duration-300">
+    <div className="space-y-6 max-w-7xl mx-auto animate-in fade-in duration-300">
       {/* Title block */}
       <div className="flex items-center gap-3">
         <button
@@ -61,7 +62,7 @@ export default function Favorites({
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 items-start">
           {favoriteProducts.map((product) => {
             const resolvedAllowedUnits = product.allowedUnits || 'BOTH';
             let currentUnit: 'KG' | 'UNI' | 'INTEIRO' | 'BANDA' | 'QUARTO' = product.saleType;
@@ -69,15 +70,11 @@ export default function Favorites({
               currentUnit = 'KG';
             } else if (resolvedAllowedUnits === 'UNI') {
               currentUnit = 'UNI';
-            } else if (resolvedAllowedUnits === 'FRAC') {
-              currentUnit = (selectedUnits[product.id] as 'INTEIRO' | 'BANDA' | 'QUARTO') || 'INTEIRO';
             } else {
               currentUnit = (selectedUnits[product.id] as 'KG' | 'UNI') || product.saleType;
             }
 
-            const isOriginal = currentUnit === product.saleType;
             let displayPrice = product.price;
-
             if (currentUnit === 'KG') {
               displayPrice = product.price;
             } else if (currentUnit === 'UNI') {
@@ -86,126 +83,143 @@ export default function Favorites({
               } else {
                 displayPrice = product.saleType === 'KG' ? Math.round(product.price * 0.2) : product.price;
               }
-            } else if (currentUnit === 'INTEIRO') {
-              displayPrice = product.price;
-            } else if (currentUnit === 'BANDA') {
-              displayPrice = product.price * 0.5;
-            } else if (currentUnit === 'QUARTO') {
-              displayPrice = product.price * 0.25;
             }
+
+            const hasVariants = !!(product.variants && product.variants.length > 0);
+            const currentVariantIndex = selectedVariantIndex[product.id] ?? 0;
+            const currentVariant = hasVariants ? product.variants![currentVariantIndex] : undefined;
+            if (currentVariant) {
+              displayPrice = currentVariant.price;
+            }
+
+            const rawSuffix = currentVariant
+              ? currentVariant.label
+              : currentUnit === 'QUARTO' ? '1/4'
+              : currentUnit === 'INTEIRO' ? 'inteiro'
+              : currentUnit === 'BANDA' ? 'banda'
+              : currentUnit.toLowerCase();
+            const priceSuffix = (displayPrice >= 100 || rawSuffix.length > 4)
+              ? rawSuffix.slice(0, 3)
+              : rawSuffix;
 
             return (
               <div
                 key={product.id}
-                className="bg-white rounded-xl p-4 shadow-sm border border-[#bfc9bc]/10 hover:shadow-md transition-all duration-200 flex gap-4 relative justify-between items-center"
+                className="group bg-white rounded-xl p-4 shadow-sm border border-[#bfc9bc]/10 hover:shadow-md transition-all duration-300 relative flex flex-col"
               >
-                <div className="flex gap-4 items-center flex-1 min-w-0">
-                  {/* Thumbnail */}
-                  <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden bg-[#f1f5ed] border border-gray-100 shrink-0">
-                    <img
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
-                      src={product.imageUrl}
-                    />
-                  </div>
+                {/* Image and Remove Toggle */}
+                <div className="relative aspect-square mb-4 rounded-lg overflow-hidden bg-[#f1f5ed] border border-gray-100">
+                  <img
+                    alt={product.name}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    referrerPolicy="no-referrer"
+                    loading="lazy"
+                    decoding="async"
+                    src={product.imageUrl}
+                  />
+                  <button
+                    onClick={() => onToggleFavorite(product.id)}
+                    className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/90 flex items-center justify-center text-[#99405c] shadow-sm hover:bg-white transition-all cursor-pointer"
+                    title="Remover dos Favoritos"
+                    aria-label="Remover dos Favoritos"
+                  >
+                    <Heart className="w-[18px] h-[18px] fill-[#99405c]" />
+                  </button>
+                </div>
 
-                  {/* Details */}
-                  <div className="flex-1 min-w-0 space-y-1">
-                    <span className="text-[9px] font-bold tracking-wider uppercase text-[#707a6e]">
-                      {product.category}
-                    </span>
-                    <h3 className="font-bold text-[#181d18] text-sm md:text-base truncate leading-tight">
-                      {product.name}
-                    </h3>
-                    <p className="text-[#176c33] font-bold text-sm">
-                      R$ {displayPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      <span className="text-[10px] font-normal text-[#707a6e] ml-0.5">
-                        /{currentUnit === 'QUARTO' ? '1/4' : currentUnit.toLowerCase()}
-                      </span>
+                <div>
+                  <span className="text-[9px] font-bold tracking-wider uppercase text-[#707a6e]">
+                    {product.category}
+                  </span>
+                  <h3
+                    className="font-bold text-[#181d18] text-sm md:text-base mt-0.5 line-clamp-2 leading-snug min-h-[2.5em]"
+                    style={{ fontFamily: 'Plus Jakarta Sans' }}
+                  >
+                    {product.name}
+                  </h3>
+
+                  {product.description && (
+                    <p className="text-xs text-[#707a6e] line-clamp-2 mt-1 mb-3">
+                      {product.description}
                     </p>
+                  )}
 
-                    {/* Unit Switcher */}
+                  {/* Sale Type Pills */}
+                  <div className="flex gap-1.5 mb-4">
                     {resolvedAllowedUnits === 'BOTH' ? (
-                      <div className="flex gap-1 pt-1 max-w-[140px]">
+                      <>
                         <button
+                          type="button"
                           onClick={() => setSelectedUnits(prev => ({ ...prev, [product.id]: 'UNI' }))}
-                          className={`flex-1 text-center py-0.5 rounded text-[8px] uppercase tracking-wider font-bold border transition-all ${
+                          className={`flex-1 text-center py-1.5 rounded-full text-[10px] uppercase font-bold tracking-wide border transition-all cursor-pointer ${
                             currentUnit === 'UNI'
-                              ? 'bg-[#176c33] text-white border-[#176c33]'
-                              : 'bg-white text-[#707a6e] border-[#bfc9bc]/30'
+                              ? 'bg-[#176c33] text-white border-[#176c33] font-extrabold shadow-sm'
+                              : 'bg-white text-[#707a6e] border-[#bfc9bc]/30 hover:bg-[#f1f5ed]'
                           }`}
                         >
                           Unidade
                         </button>
                         <button
+                          type="button"
                           onClick={() => setSelectedUnits(prev => ({ ...prev, [product.id]: 'KG' }))}
-                          className={`flex-1 text-center py-0.5 rounded text-[8px] uppercase tracking-wider font-bold border transition-all ${
+                          className={`flex-1 text-center py-1.5 rounded-full text-[10px] uppercase font-bold tracking-wide border transition-all cursor-pointer ${
                             currentUnit === 'KG'
-                              ? 'bg-[#176c33] text-white border-[#176c33]'
-                              : 'bg-white text-[#707a6e] border-[#bfc9bc]/30'
+                              ? 'bg-[#176c33] text-white border-[#176c33] font-extrabold shadow-sm'
+                              : 'bg-white text-[#707a6e] border-[#bfc9bc]/30 hover:bg-[#f1f5ed]'
                           }`}
                         >
                           Quilo
                         </button>
-                      </div>
-                    ) : resolvedAllowedUnits === 'FRAC' ? (
-                      <div className="flex gap-1 pt-1 max-w-[210px]">
-                        <button
-                          onClick={() => setSelectedUnits(prev => ({ ...prev, [product.id]: 'INTEIRO' }))}
-                          className={`flex-1 text-center py-0.5 px-1.5 rounded text-[8px] uppercase tracking-wider font-bold border transition-all ${
-                            currentUnit === 'INTEIRO'
-                              ? 'bg-[#176c33] text-white border-[#176c33]'
-                              : 'bg-white text-[#707a6e] border-[#bfc9bc]/30'
-                          }`}
-                        >
-                          Inteiro
-                        </button>
-                        <button
-                          onClick={() => setSelectedUnits(prev => ({ ...prev, [product.id]: 'BANDA' }))}
-                          className={`flex-1 text-center py-0.5 px-1.5 rounded text-[8px] uppercase tracking-wider font-bold border transition-all ${
-                            currentUnit === 'BANDA'
-                              ? 'bg-[#176c33] text-white border-[#176c33]'
-                              : 'bg-white text-[#707a6e] border-[#bfc9bc]/30'
-                          }`}
-                        >
-                          Banda
-                        </button>
-                        <button
-                          onClick={() => setSelectedUnits(prev => ({ ...prev, [product.id]: 'QUARTO' }))}
-                          className={`flex-1 text-center py-0.5 px-1.5 rounded text-[8px] uppercase tracking-wider font-bold border transition-all ${
-                            currentUnit === 'QUARTO'
-                              ? 'bg-[#176c33] text-white border-[#176c33]'
-                              : 'bg-white text-[#707a6e] border-[#bfc9bc]/30'
-                          }`}
-                        >
-                          1/4
-                        </button>
-                      </div>
+                      </>
                     ) : null}
                   </div>
+
+                  {/* Variant Selector (e.g. same product in 500g / 1kg, or Inteiro/Banda/1/4) */}
+                  {hasVariants && (
+                    <div className="flex flex-nowrap gap-1.5 mb-4 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                      {product.variants!.map((variant, vIndex) => (
+                        <button
+                          key={variant.label + vIndex}
+                          type="button"
+                          onClick={() => setSelectedVariantIndex(prev => ({ ...prev, [product.id]: vIndex }))}
+                          className={`shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full text-[10px] uppercase font-bold tracking-wide border transition-all cursor-pointer ${
+                            currentVariantIndex === vIndex
+                              ? 'bg-[#176c33] text-white border-[#176c33] font-extrabold shadow-sm'
+                              : 'bg-white text-[#707a6e] border-[#bfc9bc]/30 hover:bg-[#f1f5ed]'
+                          }`}
+                        >
+                          {variant.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
-                {/* Actions */}
-                <div className="flex flex-col gap-2 items-end shrink-0">
-                  <button
-                    onClick={() => onToggleFavorite(product.id)}
-                    className="p-1.5 rounded-full hover:bg-red-50 text-[#99405c] transition-colors cursor-pointer"
-                    title="Remover dos Favoritos"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                {/* Price and Add button */}
+                <div className="flex items-center justify-between gap-2 pt-1 mt-auto">
+                  <div className="flex flex-col min-w-0 flex-1">
+                    <span className="text-[10px] text-[#707a6e] font-semibold leading-none mb-0.5">
+                      Preço
+                    </span>
+                    <span className="text-[#176c33] font-extrabold text-sm md:text-base whitespace-nowrap">
+                      <span className="mr-0.5">R$</span>{displayPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      <span className="text-[10px] font-normal text-[#707a6e] ml-0.5">
+                        /{priceSuffix}
+                      </span>
+                    </span>
+                  </div>
 
                   <button
                     onClick={() => onAddToCart({
                       ...product,
                       saleType: currentUnit,
-                      price: displayPrice
+                      price: displayPrice,
+                      variantLabel: currentVariant?.label
                     })}
-                    className="h-9 px-3.5 rounded-full bg-[#176c33] hover:bg-[#115326] text-white text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
+                    className="w-7 h-7 rounded-full bg-[#176c33] hover:bg-[#115326] text-white flex items-center justify-center transition-all duration-300 active:scale-90 shadow-sm cursor-pointer shrink-0"
+                    aria-label="Adicionar ao carrinho"
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    <span>Adicionar</span>
                   </button>
                 </div>
               </div>

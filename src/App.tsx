@@ -721,7 +721,7 @@ if (!isProductsReady) {
       />
 
       {/* Main Container viewports */}
-      <main className="flex-grow max-w-7xl w-full mx-auto px-5 py-6">
+      <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-5 py-6">
         {renderActiveView()}
       </main>
 
