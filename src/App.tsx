@@ -183,7 +183,16 @@ const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
   const handleToggleOffline = (val: boolean) => {
     setIsOffline(val);
     skipNextIsOfflineWrite.current = false;
-    setDoc(doc(db, 'sacolao', 'site_status'), { isOffline: val });
+    setDoc(doc(db, 'sacolao', 'site_status'), { isOffline: val })
+      .then(() => {
+        console.log('site_status salvo com sucesso:', val);
+      })
+      .catch((err) => {
+        console.error('Erro ao salvar site_status:', err);
+        alert('Não foi possível salvar essa alteração no banco de dados. Erro: ' + (err?.message || err));
+        // Revert local state since the write failed
+        setIsOffline(!val);
+      });
   };
 
   useEffect(() => {
